@@ -1,0 +1,79 @@
+title = "BrewSecOps Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+# Custom rules for specific patterns
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["key", "AWS"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Key"
+regex = '''(?i)aws(.{0,20})?(?-i)['\"][0-9a-zA-Z\/+]{40}['\"]'''
+tags = ["key", "AWS"]
+
+[[rules]]
+id = "github-pat"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["key", "GitHub"]
+
+[[rules]]
+id = "github-oauth"
+description = "GitHub OAuth Access Token"
+regex = '''gho_[0-9a-zA-Z]{36}'''
+tags = ["key", "GitHub"]
+
+[[rules]]
+id = "github-app-token"
+description = "GitHub App Token"
+regex = '''(ghu|ghs)_[0-9a-zA-Z]{36}'''
+tags = ["key", "GitHub"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (RSA|OPENSSH|DSA|EC|PGP) PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey)(.{0,20})?['\"][0-9a-zA-Z]{32,45}['\"]'''
+tags = ["key", "API"]
+
+# Allowlist - files and paths to ignore
+[allowlist]
+description = "Allowlist for demo passwords and non-sensitive files"
+
+# File patterns to exclude
+paths = [
+    '''^\.git/''',
+    '''node_modules/''',
+    '''vendor/''',
+    '''(.*?)(jpg|gif|doc|pdf|bin|svg|png|ico)$''',
+    '''package-lock\.json$''',
+    '''yarn\.lock$''',
+]
+
+# Allowlist demo passwords used in examples and local development
+# These are intentionally public for demo purposes
+regexes = [
+    '''postgres123''',        # Demo DB password in docker-compose
+    '''brew2026''',           # Demo customer password in seed data
+    '''coffee123''',          # Demo customer password in seed data
+    '''your_password_here''', # Placeholder in .env.example files
+    '''your_secure_password_here''', # Placeholder in .env.example
+]
+
+# Stop words - common false positives
+stopwords = [
+    '''example''',
+    '''test''',
+    '''demo''',
+    '''sample''',
+]

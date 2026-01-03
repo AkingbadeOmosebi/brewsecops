@@ -1,0 +1,33 @@
+# Snyk (https://snyk.io) policy file
+version: v1.25.0
+
+# Ignore specific vulnerabilities
+ignore: {}
+
+# Example of ignore settings (remove if not needed):
+# ignore:
+#   SNYK-JS-EXAMPLE-123456:
+#     - '*':
+#         reason: 'False positive - not applicable to my use case'
+#         expires: '2026-06-01T00:00:00.000Z'
+
+# Patch vulnerabilities
+patch: {}
+
+# Language settings
+language-settings:
+  node:
+    # Fail on high severity and above
+    threshold: high
+    
+    # Include dev dependencies
+    dev: true
+
+# Exclude directories from scanning
+exclude:
+  global:
+    - node_modules/**
+    - dist/**
+    - build/**
+    - coverage/**
+    - .git/**
