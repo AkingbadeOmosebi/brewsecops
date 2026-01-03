@@ -17,6 +17,7 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_email: '',
+    customer_password: '',
   });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
@@ -66,6 +67,7 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
       const response = await createOrder({
         customer_name: formData.customer_name,
         customer_email: formData.customer_email,
+        customer_password: formData.customer_password,
         items: cart.map(item => ({
           product_id: item.product.id,
           quantity: item.quantity,
@@ -77,7 +79,7 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
       }
 
       setSuccess(true);
-      setFormData({ customer_name: '', customer_email: '' });
+      setFormData({ customer_name: '', customer_email: '', customer_password: '' });
       setCart([]);
 
       setTimeout(() => {
@@ -110,7 +112,7 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Your Name *</label>
             <input
@@ -131,6 +133,17 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
               onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })}
               className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
               placeholder="john@example.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Password *</label>
+            <input
+              type="password"
+              required
+              value={formData.customer_password}
+              onChange={(e) => setFormData({ ...formData, customer_password: e.target.value })}
+              className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              placeholder="Create password"
             />
           </div>
         </div>

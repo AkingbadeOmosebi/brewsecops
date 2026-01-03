@@ -88,6 +88,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', [
   body('customer_name').trim().notEmpty().withMessage('Customer name is required'),
   body('customer_email').isEmail().withMessage('Valid email is required'),
+  body('customer_password').trim().notEmpty().withMessage('Password is required'),
   body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
   body('items.*.product_id').isUUID().withMessage('Valid product ID is required'),
   body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1')
@@ -105,7 +106,7 @@ router.post('/', [
   try {
     await client.query('BEGIN');
     
-    const { customer_name, customer_email, items } = req.body;
+    const { customer_name, customer_email, customer_password, items } = req.body;
     
     // Calculate total
     let total = 0;
@@ -132,12 +133,16 @@ router.post('/', [
       });
     }
     
+    // Random preparation time: 4-10 minutes
+    const prepMinutes = Math.floor(Math.random() * 7) + 4;
+    const readyAt = new Date(Date.now() + prepMinutes * 60000);
+    
     // Insert order
     const orderResult = await client.query(
-      `INSERT INTO orders (customer_name, customer_email, total, status)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO orders (customer_name, customer_email, customer_password, total, status, preparation_minutes, ready_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [customer_name, customer_email, total.toFixed(2), 'pending']
+      [customer_name, customer_email, customer_password, total.toFixed(2), 'pending', prepMinutes, readyAt]
     );
     
     const order = orderResult.rows[0];

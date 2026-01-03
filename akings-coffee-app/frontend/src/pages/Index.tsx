@@ -90,7 +90,11 @@ const Index = () => {
             </div>
             <div>
               <h1 className="text-6xl font-bold text-white mb-2 tracking-tight">Aking's Coffee</h1>
-              <p className="text-2xl text-amber-50 font-light">Brew Beautifully, Deploy Securely</p>
+              <p className="text-2xl font-light">
+                <span className="text-amber-300">Brew Beautifully</span>
+                <span className="text-amber-100">, </span>
+                <span className="text-white">Deploy Securely</span>
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-amber-50/90">

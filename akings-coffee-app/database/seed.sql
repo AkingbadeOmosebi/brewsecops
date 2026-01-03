@@ -56,8 +56,8 @@ BEGIN
     SELECT id INTO product_muffin FROM products WHERE name = 'Blueberry Muffin' LIMIT 1;
     
     -- Order 1
-    INSERT INTO orders (customer_name, customer_email, total, status)
-    VALUES ('Aking (Founder)', 'akingbadeo_ceo@brewcoffee.com', 8.25, 'completed')
+    INSERT INTO orders (customer_name, customer_email, customer_password, total, status, preparation_minutes, ready_at)
+    VALUES ('Aking (Founder)', 'akingbadeo_ceo@brewcoffee.com', 'brew2026', 8.25, 'completed', 7, CURRENT_TIMESTAMP)
     RETURNING id INTO order_id_1;
     
     INSERT INTO order_items (order_id, product_id, quantity, price)
@@ -66,8 +66,8 @@ BEGIN
         (order_id_1, product_croissant, 1, 3.50);
     
     -- Order 2
-    INSERT INTO orders (customer_name, customer_email, total, status)
-    VALUES ('Sarah Johnson', 'sarah@example.com', 9.00, 'pending')
+    INSERT INTO orders (customer_name, customer_email, customer_password, total, status, preparation_minutes, ready_at)
+    VALUES ('Sarah Johnson', 'sarah.johnson@brewcoffee.com', 'coffee123', 9.00, 'pending', 6, CURRENT_TIMESTAMP + INTERVAL '6 minutes')
     RETURNING id INTO order_id_2;
     
     INSERT INTO order_items (order_id, product_id, quantity, price)
@@ -82,9 +82,9 @@ END $$;
 -- Sample Reservations
 -- ============================================
 INSERT INTO reservations (name, email, phone, date, time, guests, notes, status) VALUES
-('Aking', 'aking@example.com', '+49 123 456 7890', CURRENT_DATE + 1, '10:00 AM', 2, 'Window seat preferred', 'confirmed'),
-('Michael Schmidt', 'michael@example.com', '+49 987 654 3210', CURRENT_DATE + 2, '2:00 PM', 4, 'Birthday celebration', 'confirmed'),
-('Emma Mueller', 'emma@example.com', NULL, CURRENT_DATE + 3, '6:00 PM', 6, NULL, 'confirmed');
+('Aking (Founder)', 'akingbadeo_ceo@brewcoffee.com', '+49 123 456 7890', CURRENT_DATE + 1, '10:00 AM', 2, 'Window seat preferred', 'confirmed'),
+('Michael Schmidt', 'michael.schmidt@brewcoffee.com', '+49 987 654 3210', CURRENT_DATE + 2, '2:00 PM', 4, 'Birthday celebration', 'confirmed'),
+('Emma Mueller', 'emma.mueller@brewcoffee.com', NULL, CURRENT_DATE + 3, '6:00 PM', 6, NULL, 'confirmed');
 
 -- ============================================
 -- Sample Contact Messages

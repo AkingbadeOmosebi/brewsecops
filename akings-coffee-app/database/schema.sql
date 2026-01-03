@@ -34,8 +34,11 @@ CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_name VARCHAR(255) NOT NULL,
   customer_email VARCHAR(255) NOT NULL,
+  customer_password VARCHAR(255),
   total DECIMAL(10, 2) NOT NULL,
   status VARCHAR(50) DEFAULT 'pending',
+  preparation_minutes INTEGER DEFAULT 0,
+  ready_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
