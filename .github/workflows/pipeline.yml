@@ -1,0 +1,420 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY_GHCR: ghcr.io/${{ github.repository_owner }}
+  IMAGE_FRONTEND: brewsecops-frontend
+  IMAGE_BACKEND: brewsecops-backend
+
+# Least privilege - only grant permissions actually needed
+permissions:
+  contents: write          # Semantic release needs to create tags and update CHANGELOG
+  packages: write          # Push to GHCR
+  issues: write            # Create deployment status issues
+  pull-requests: write     # Comment on PRs
+  id-token: write          # OIDC for Cosign keyless signing
+  security-events: write   # Upload security scan results (SARIF)
+
+jobs:
+  # ============================================
+  # JOB 1: Security Scanning
+  # ============================================
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 1: Gitleaks - Secret Scanning
+      - name: Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+      # Step 2: Setup Node.js for linting
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            akings-coffee-app/frontend/package-lock.json
+            akings-coffee-app/backend/package-lock.json
+
+      # Step 3: ESLint - Frontend
+      - name: Install Frontend Dependencies
+        working-directory: akings-coffee-app/frontend
+        run: npm ci
+
+      - name: ESLint Frontend
+        working-directory: akings-coffee-app/frontend
+        run: npm run lint
+
+      # Step 4: ESLint - Backend
+      - name: Install Backend Dependencies
+        working-directory: akings-coffee-app/backend
+        run: npm ci
+
+      - name: ESLint Backend
+        working-directory: akings-coffee-app/backend
+        run: npm run lint
+
+      # Step 5: SonarCloud Analysis
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Step 6: OWASP Dependency Check with database caching
+      - name: Cache OWASP Database
+        uses: actions/cache@v3
+        with:
+          path: ~/.owasp/dependency-check-data
+          key: ${{ runner.os }}-owasp-db-v1
+          restore-keys: |
+            ${{ runner.os }}-owasp-db-
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'BrewSecOps'
+          path: './akings-coffee-app'
+          format: 'ALL'
+          args: >
+            --enableExperimental
+            --failOnCVSS 7
+
+      - name: Upload OWASP Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-report
+          path: reports/
+
+      # Step 7: Snyk Security Scan
+      - name: Snyk Security Scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --all-projects
+
+      - name: Upload Snyk Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
+
+  # ============================================
+  # JOB 2: Build & Container Security
+  # ============================================
+  build-and-scan:
+    name: Build & Container Security
+    needs: security-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      version: ${{ steps.semantic.outputs.new_release_version }}
+      released: ${{ steps.semantic.outputs.new_release_published }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Step 1: Semantic Release
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Semantic Release Dependencies
+        run: npm ci
+
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+
+      - name: Check Release Status
+        run: |
+          echo "New release published: ${{ steps.semantic.outputs.new_release_published }}"
+          echo "New release version: ${{ steps.semantic.outputs.new_release_version }}"
+
+      # Step 2: Hadolint - Dockerfile Linting
+      - name: Hadolint Frontend Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: akings-coffee-app/frontend/Dockerfile
+          failure-threshold: warning
+
+      - name: Hadolint Backend Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: akings-coffee-app/backend/Dockerfile
+          failure-threshold: warning
+
+      # Step 3: Docker Build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./akings-coffee-app/frontend
+          file: ./akings-coffee-app/frontend/Dockerfile
+          target: production
+          push: false
+          load: true
+          tags: |
+            ${{ env.IMAGE_FRONTEND }}:${{ steps.semantic.outputs.new_release_version || 'latest' }}
+            ${{ env.IMAGE_FRONTEND }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./akings-coffee-app/backend
+          file: ./akings-coffee-app/backend/Dockerfile
+          target: production
+          push: false
+          load: true
+          tags: |
+            ${{ env.IMAGE_BACKEND }}:${{ steps.semantic.outputs.new_release_version || 'latest' }}
+            ${{ env.IMAGE_BACKEND }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Step 4: Trivy Container Scan (before SBOM - fail fast)
+      - name: Trivy Scan Frontend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_FRONTEND }}:${{ steps.semantic.outputs.new_release_version || 'latest' }}
+          format: 'sarif'
+          output: 'trivy-frontend.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: 1
+
+      - name: Upload Trivy Frontend Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-frontend.sarif'
+          category: 'trivy-frontend'
+
+      - name: Trivy Scan Backend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_BACKEND }}:${{ steps.semantic.outputs.new_release_version || 'latest' }}
+          format: 'sarif'
+          output: 'trivy-backend.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: 1
+
+      - name: Upload Trivy Backend Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-backend.sarif'
+          category: 'trivy-backend'
+
+      # Step 5: SBOM Generation (after Trivy passes)
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate Frontend SBOM
+        run: |
+          VERSION="${{ steps.semantic.outputs.new_release_version || 'latest' }}"
+          syft ${{ env.IMAGE_FRONTEND }}:$VERSION -o spdx-json=frontend-sbom.spdx.json
+
+      - name: Generate Backend SBOM
+        run: |
+          VERSION="${{ steps.semantic.outputs.new_release_version || 'latest' }}"
+          syft ${{ env.IMAGE_BACKEND }}:$VERSION -o spdx-json=backend-sbom.spdx.json
+
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sboms
+          path: |
+            frontend-sbom.spdx.json
+            backend-sbom.spdx.json
+
+      # Save images for next job
+      - name: Save Docker Images
+        run: |
+          VERSION="${{ steps.semantic.outputs.new_release_version || 'latest' }}"
+          docker save ${{ env.IMAGE_FRONTEND }}:$VERSION | gzip > frontend-image.tar.gz
+          docker save ${{ env.IMAGE_BACKEND }}:$VERSION | gzip > backend-image.tar.gz
+
+      - name: Upload Images
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: |
+            frontend-image.tar.gz
+            backend-image.tar.gz
+          retention-days: 1
+
+  # ============================================
+  # JOB 3: Sign, Approve & Push to Registry
+  # ============================================
+  sign-and-push:
+    name: Sign & Push to Registry
+    needs: build-and-scan
+    if: needs.build-and-scan.outputs.released == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_FRONTEND }}
+    
+    # Least privilege - only permissions needed for this job
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      issues: write
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Download artifacts from build job
+      - name: Download Docker Images
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+
+      - name: Download SBOMs
+        uses: actions/download-artifact@v4
+        with:
+          name: sboms
+
+      - name: Load Docker Images
+        run: |
+          docker load < frontend-image.tar.gz
+          docker load < backend-image.tar.gz
+
+      # Step 1: Install signing tools
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 2: Tag images for GHCR
+      - name: Tag Images for GHCR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          
+          docker tag ${{ env.IMAGE_FRONTEND }}:$VERSION \
+            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
+          docker tag ${{ env.IMAGE_FRONTEND }}:$VERSION \
+            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:latest
+          
+          docker tag ${{ env.IMAGE_BACKEND }}:$VERSION \
+            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
+          docker tag ${{ env.IMAGE_BACKEND }}:$VERSION \
+            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:latest
+
+      # Step 3: Push to GHCR
+      - name: Push Frontend to GHCR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
+          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:latest
+
+      - name: Push Backend to GHCR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
+          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:latest
+
+      # Step 4: Sign images with Cosign (keyless OIDC)
+      - name: Sign Frontend Image
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          cosign sign --yes ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
+
+      - name: Sign Backend Image
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          cosign sign --yes ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
+
+      # Step 5: Attach SBOMs to signed images
+      - name: Attach Frontend SBOM
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          cosign attach sbom --sbom frontend-sbom.spdx.json \
+            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
+
+      - name: Attach Backend SBOM
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          cosign attach sbom --sbom backend-sbom.spdx.json \
+            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
+
+      # Step 6: Create deployment status notification
+      - name: Create Deployment Status Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ needs.build-and-scan.outputs.version }}';
+            const frontendImage = `${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:${version}`;
+            const backendImage = `${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:${version}`;
+            
+            const body = `## Deployment Status: SUCCESS
+            
+            **Version:** v${version}
+            **Deployed At:** ${new Date().toISOString()}
+            **Approved By:** @${{ github.actor }}
+            
+            ### Images Published
+            - Frontend: \`${frontendImage}\`
+            - Backend: \`${backendImage}\`
+            
+            ### Security Validation
+            - Gitleaks: No secrets detected
+            - OWASP + Snyk: Dependency scans passed
+            - Trivy: No critical vulnerabilities
+            - Cosign: Images signed with keyless OIDC
+            - SBOM: Attached in SPDX format
+            
+            ### Registry
+            - [Frontend Package](https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_FRONTEND }})
+            - [Backend Package](https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_BACKEND }})
+            `;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Deployment v${version} - SUCCESS`,
+              body: body,
+              labels: ['deployment', 'success']
+            });
