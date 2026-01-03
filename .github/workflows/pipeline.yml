@@ -388,14 +388,14 @@ jobs:
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
-          cosign attach sbom --sbom frontend-sbom.spdx.json \
+          cosign attest --yes --type spdx --predicate frontend-sbom.spdx.json \
             ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
 
       - name: Attach Backend SBOM
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
-          cosign attach sbom --sbom backend-sbom.spdx.json \
+          cosign attest --yes --type spdx --predicate frontend-sbom.spdx.json \
             ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
 
       # Step 6: Create deployment status notification
