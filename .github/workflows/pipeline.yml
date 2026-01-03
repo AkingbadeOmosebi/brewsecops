@@ -304,6 +304,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+
+      # Convert repository owner to lowercase for GHCR
+      - name: Convert Repository Owner to Lowercase
+        id: repo_owner
+        run: echo "owner_lc=${OWNER,,}" >> $GITHUB_OUTPUT
+        env:
+          OWNER: ${{ github.repository_owner }}
+
       # Download artifacts from build job
       - name: Download Docker Images
         uses: actions/download-artifact@v4
@@ -331,57 +339,64 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 2: Tag images for GHCR
+      # Step 2: Tag images for GHCR  # Converted to lowercases for GHCR
       - name: Tag Images for GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
+          OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
           
           docker tag ${{ env.IMAGE_FRONTEND }}:$VERSION \
-            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
+            ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
           docker tag ${{ env.IMAGE_FRONTEND }}:$VERSION \
-            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:latest
-          
+            ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:latest
+
           docker tag ${{ env.IMAGE_BACKEND }}:$VERSION \
-            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
+            ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
           docker tag ${{ env.IMAGE_BACKEND }}:$VERSION \
-            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:latest
+            ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:latest
 
       # Step 3: Push to GHCR
       - name: Push Frontend to GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
-          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
-          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:latest
+          OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
+          docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:latest
 
       - name: Push Backend to GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
-          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
-          docker push ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:latest
+          OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
+          docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:latest
 
       # Step 4: Sign images with Cosign (keyless OIDC)
       - name: Sign Frontend Image
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
-          cosign sign --yes ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
+          OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
 
       - name: Sign Backend Image
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
-          cosign sign --yes ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
+          OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
 
       # Step 5: Attach SBOMs to signed images
       - name: Attach Frontend SBOM
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
+          OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
           cosign attach sbom --sbom frontend-sbom.spdx.json \
-            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:$VERSION
+            ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
 
       - name: Attach Backend SBOM
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
+          OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
           cosign attach sbom --sbom backend-sbom.spdx.json \
-            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:$VERSION
+            ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
 
       # Step 6: Create deployment status notification
       - name: Create Deployment Status Issue
