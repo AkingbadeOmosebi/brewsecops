@@ -8,7 +8,7 @@
  */
 
 // Get API URL from environment variable (set in docker-compose)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
  * Generic API response type
