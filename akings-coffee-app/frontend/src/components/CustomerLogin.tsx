@@ -111,7 +111,7 @@ export const CustomerLogin = ({ onOrderDeleted }: CustomerLoginProps) => {
             <User className="w-6 h-6 text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-white mb-1">Customer Portal</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">Customer Portal</h2>
             <p className="text-slate-400">Login to view and manage orders</p>
           </div>
         </div>
@@ -179,7 +179,7 @@ export const CustomerLogin = ({ onOrderDeleted }: CustomerLoginProps) => {
             <User className="w-6 h-6 text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-white mb-1">My Orders</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">My Orders</h2>
             <p className="text-slate-400">{email}</p>
           </div>
         </div>
@@ -247,7 +247,7 @@ export const CustomerLogin = ({ onOrderDeleted }: CustomerLoginProps) => {
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-3xl font-bold text-amber-400">${order.total}</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-amber-400">${order.total}</p>
                   </div>
                 </div>
 

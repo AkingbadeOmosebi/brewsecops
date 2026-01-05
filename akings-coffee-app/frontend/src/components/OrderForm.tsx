@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShoppingCart, Loader2, CheckCircle, Plus, Trash2, X } from 'lucide-react';
+import { ShoppingCart, Loader2, CheckCircle, Plus, Trash2, X, Eye, EyeOff } from 'lucide-react';
 import { createOrder } from '@/services/orders';
 import type { Product } from '@/services/products';
 
@@ -19,6 +19,7 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
     customer_email: '',
     customer_password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -137,14 +138,27 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">Password *</label>
-            <input
-              type="password"
-              required
-              value={formData.customer_password}
-              onChange={(e) => setFormData({ ...formData, customer_password: e.target.value })}
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-              placeholder="Create password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={formData.customer_password}
+                onChange={(e) => setFormData({ ...formData, customer_password: e.target.value })}
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2.5 pr-12 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                placeholder="Create password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -208,9 +222,9 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between">
+            <div className="mt-4 pt-4 border-t border-slate-700 flex justify-between items-center flex-wrap gap-2">
               <span className="text-lg font-semibold text-white">Total:</span>
-              <span className="text-3xl font-bold text-amber-400">${cartTotal.toFixed(2)}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-amber-400">${cartTotal.toFixed(2)}</span>
             </div>
           </div>
         )}
@@ -223,9 +237,20 @@ export const OrderForm = ({ products, onOrderCreated }: OrderFormProps) => {
         )}
 
         {success && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-400" />
-            <p className="text-emerald-400 text-sm">Order placed! Check Database State below.</p>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-emerald-500/30 rounded-2xl p-8 max-w-md mx-4 animate-in fade-in zoom-in duration-300">
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-emerald-500/20 p-4 rounded-full mb-4">
+                  <CheckCircle className="w-12 h-12 text-emerald-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Thank You for Your Order!</h3>
+                <p className="text-slate-400 mb-6">Your order has been placed successfully. We're preparing your coffee with care.</p>
+                <div className="w-full bg-slate-800/50 rounded-lg p-4 mb-6 text-left">
+                  <p className="text-sm text-slate-400 mb-1">Order Details</p>
+                  <p className="text-amber-400 font-semibold">{cart.length} item{cart.length !== 1 ? 's' : ''} ordered</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
