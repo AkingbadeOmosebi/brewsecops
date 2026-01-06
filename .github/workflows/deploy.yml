@@ -84,26 +84,38 @@ jobs:
     needs: [terraform-validate, trivy-scan, checkov-scan]
     permissions:
       contents: read
-      pull-requests: write
+      id-token: write
     steps:
       - uses: actions/checkout@v3
-      
+
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
-      - name: Configure AWS
-        uses: aws-actions/configure-aws-credentials@v2
+          terraform_wrapper: false
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
         with:
-          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
-          aws-region: eu-central-1
-      
-      - name: Run Infracost
-        uses: infracost/actions@main
-        with:
-          path: infra/terraform/environments/dev
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-        continue-on-error: true
+
+      - name: Generate Cost Estimate
+        run: |
+          cd infra/terraform/environments/dev
+          infracost breakdown --path . \
+            --format json \
+            --out-file /tmp/infracost.json
+
+      - name: Upload Cost Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: infracost-estimate
+          path: /tmp/infracost.json
+          retention-days: 7
+
+      - name: Post Cost Summary
+        run: |
+          echo "## 💰 Infrastructure Cost Estimate" >> $GITHUB_STEP_SUMMARY
+          infracost output --path /tmp/infracost.json --format table >> $GITHUB_STEP_SUMMARY
 
   # Stage 2: Terraform Plan
   terraform-plan:
