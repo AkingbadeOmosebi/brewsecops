@@ -46,9 +46,8 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform validate
-            
-          
-  trivy-scan:   # I switched to Trivy from tfsec for infra scanning, as TFSec is now a part of Trivy (see official docs for more info)
+
+  trivy-scan:   # I switched to trivy, as tfsec is now a part of trivy. See oficial docs.
     name: Trivy Infrastructure Scan
     runs-on: ubuntu-latest
     needs: [terraform-lint]
@@ -89,7 +88,7 @@ jobs:
   infracost-estimate:
     name: Infrastructure Cost Estimation
     runs-on: ubuntu-latest
-    needs: [terraform-validate, tfsec-scan, checkov-scan]
+    needs: [terraform-validate, trivy-scan, checkov-scan]
     permissions:
       contents: read
       pull-requests: write
