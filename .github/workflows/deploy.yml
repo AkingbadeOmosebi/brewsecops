@@ -16,7 +16,7 @@ jobs:
     name: Terraform Format Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [terraform-lint]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [terraform-lint]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Run Trivy
         uses: aquasecurity/trivy-action@master
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [terraform-lint]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
@@ -86,7 +86,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -106,7 +106,7 @@ jobs:
             --out-file /tmp/infracost.json
 
       - name: Upload Cost Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: infracost-estimate
           path: /tmp/infracost.json
@@ -128,7 +128,7 @@ jobs:
     outputs:
       plan_exit_code: ${{ steps.plan.outputs.exit_code }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -180,7 +180,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -206,7 +206,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -232,7 +232,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -258,7 +258,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -290,7 +290,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -316,7 +316,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -348,7 +348,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -375,7 +375,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: hashicorp/setup-terraform@v2
         with:
@@ -399,7 +399,7 @@ jobs:
     needs: [deploy-services]
     if: always()
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Create Deployment Status
         uses: actions/github-script@v6
