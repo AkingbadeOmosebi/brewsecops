@@ -116,15 +116,15 @@ module "acm" {
 module "waf" {
   source = "../../modules/WAF"
 
-  project_name       = var.project_name
-  environment        = var.environment
-  alb_arn            = module.alb.alb_arn
-  aws_region         = var.aws_region
-  rate_limit         = var.waf_rate_limit
-  ip_whitelist       = var.waf_ip_whitelist
-  blocked_countries = var.blocked_countries
+  project_name        = var.project_name
+  environment         = var.environment
+  alb_arn             = module.alb.alb_arn
+  aws_region          = var.aws_region
+  rate_limit          = var.waf_rate_limit
+  ip_whitelist        = var.waf_ip_whitelist
+  blocked_countries   = var.blocked_countries
   enable_geo_blocking = var.enable_geo_blocking
-  log_retention_days = 30
+  log_retention_days  = 30
 }
 
 
@@ -225,10 +225,10 @@ module "ecs_service_backend" {
 
 # OIDC Module for GitHub Actions
 module "oidc" {
-     source = "../../modules/oidc"
-     project_name = var.project_name
-     environment  = var.environment
-     aws_region   = var.aws_region
-     github_org   = "AkingbadeOmosebi"
-     github_repo  = "brewsecops"
-   }
+  source       = "../../modules/oidc"
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+  github_org   = "AkingbadeOmosebi"
+  github_repo  = "brewsecops"
+}

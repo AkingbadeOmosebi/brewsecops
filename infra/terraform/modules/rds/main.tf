@@ -10,7 +10,7 @@ resource "aws_db_instance" "main" {
   storage_encrypted = true
 
   # Pointing to the KMS key defined below in this same file
-  kms_key_id        = aws_kms_key.brew_key.arn
+  kms_key_id = aws_kms_key.brew_key.arn
 
   db_name  = var.database_name
   username = var.master_username
@@ -20,10 +20,10 @@ resource "aws_db_instance" "main" {
   vpc_security_group_ids = [var.security_group_id]
   db_subnet_group_name   = var.db_subnet_group_name
 
-  multi_az                = var.multi_az
-  publicly_accessible     = false
-  deletion_protection     = var.deletion_protection
-  skip_final_snapshot     = var.skip_final_snapshot
+  multi_az            = var.multi_az
+  publicly_accessible = false
+  deletion_protection = var.deletion_protection
+  skip_final_snapshot = var.skip_final_snapshot
 
   # snapshot logic
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.project_name}-db-final-snapshot-${var.environment}-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"

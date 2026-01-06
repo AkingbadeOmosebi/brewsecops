@@ -15,10 +15,10 @@ resource "aws_wafv2_web_acl" "main" {
   # RULE 1: Rate Limiting with CAPTCHA Challenge
   # Purpose: Prevent DDoS attacks and brute force attempts
   # How it works:
-    #  Tracks requests per IP address
-    #  If IP exceeds limit in 5 min window → CAPTCHA or BLOCK
-    #  CAPTCHA: Shows puzzle, legitimate users solve and continue
-    #  BLOCK: Immediately rejects request (old behavior)
+  #  Tracks requests per IP address
+  #  If IP exceeds limit in 5 min window → CAPTCHA or BLOCK
+  #  CAPTCHA: Shows puzzle, legitimate users solve and continue
+  #  BLOCK: Immediately rejects request (old behavior)
   rule {
     name     = "RateLimitRule"
     priority = 1
@@ -42,8 +42,8 @@ resource "aws_wafv2_web_acl" "main" {
 
     statement {
       rate_based_statement {
-        limit              = var.rate_limit          # requests per 5 min
-        aggregate_key_type = "IP"                    # track by IP address
+        limit              = var.rate_limit # requests per 5 min
+        aggregate_key_type = "IP"           # track by IP address
       }
     }
 
@@ -56,14 +56,14 @@ resource "aws_wafv2_web_acl" "main" {
 
 
   # RULE 2: AWS Core Rule Set
-    # Protection against: XSS, SQL injection, RCE, CSRF, XXE, etc.
-    # Maintained by AWS and updated regularly
+  # Protection against: XSS, SQL injection, RCE, CSRF, XXE, etc.
+  # Maintained by AWS and updated regularly
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
     priority = 2
 
     override_action {
-      none {}  # Uses rule group's default actions
+      none {} # Uses rule group's default actions
     }
 
     statement {
@@ -82,7 +82,7 @@ resource "aws_wafv2_web_acl" "main" {
 
 
   # RULE 3: Known Bad Inputs
-    # Blocks: Log4j exploits, known malware, scanner signatures
+  # Blocks: Log4j exploits, known malware, scanner signatures
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
     priority = 3
@@ -133,9 +133,9 @@ resource "aws_wafv2_web_acl" "main" {
 
 
   # RULE 5: IP Whitelist (Optional, Tested on known IPs)
-    # Purpose: Allow specific IPs to bypass WAF rules entirely
-    # Use case: Internal IPs, partner APIs, monitoring services
-    # Only created if ip_whitelist variable contains IPs
+  # Purpose: Allow specific IPs to bypass WAF rules entirely
+  # Use case: Internal IPs, partner APIs, monitoring services
+  # Only created if ip_whitelist variable contains IPs
   dynamic "rule" {
     for_each = length(var.ip_whitelist) > 0 ? [1] : []
 
@@ -144,7 +144,7 @@ resource "aws_wafv2_web_acl" "main" {
       priority = 5
 
       action {
-        allow {}  # These IPs skip all other rules
+        allow {} # These IPs skip all other rules
       }
 
       statement {
@@ -163,10 +163,10 @@ resource "aws_wafv2_web_acl" "main" {
 
 
   # RULE 6: Geographic Blocking
-    # Purpose: Block requests from specific countries
-    # Use case: Compliance, regional restrictions, threat mitigation
-    # Example: blocked_countries = ["CN", "RU", "KP"]
-    # Only created if enable_geo_blocking is true AND countries list provided
+  # Purpose: Block requests from specific countries
+  # Use case: Compliance, regional restrictions, threat mitigation
+  # Example: blocked_countries = ["CN", "RU", "KP"]
+  # Only created if enable_geo_blocking is true AND countries list provided
   dynamic "rule" {
     for_each = var.enable_geo_blocking && length(var.blocked_countries) > 0 ? [1] : []
 
@@ -175,7 +175,7 @@ resource "aws_wafv2_web_acl" "main" {
       priority = 6
 
       action {
-        block {}  # Reject requests from these countries
+        block {} # Reject requests from these countries
       }
 
       statement {
@@ -196,12 +196,12 @@ resource "aws_wafv2_web_acl" "main" {
   # RULE 7: Bot Control (AWS Managed)
 
   # Purpose: Detect and challenge automated requests
-        # Detects:
-        #   - Browser automation (Selenium, Puppeteer)
-        #   - Web scrapers
-        #   - Vulnerability scanners
-        #   - DDoS tools
-        #   - API abuse
+  # Detects:
+  #   - Browser automation (Selenium, Puppeteer)
+  #   - Web scrapers
+  #   - Vulnerability scanners
+  #   - DDoS tools
+  #   - API abuse
 
   # Action: CHALLENGE (show CAPTCHA) by default
   # Uses machine learning to distinguish humans from bots
@@ -210,7 +210,7 @@ resource "aws_wafv2_web_acl" "main" {
     priority = 7
 
     override_action {
-      none {}  # Uses AWS default: Challenge bots
+      none {} # Uses AWS default: Challenge bots
     }
 
     statement {
@@ -242,8 +242,8 @@ resource "aws_wafv2_web_acl" "main" {
 }
 
 # IP SET - Whitelist
-  # Resource for managing whitelisted IPs
-  # Only created if ip_whitelist variable is not empty
+# Resource for managing whitelisted IPs
+# Only created if ip_whitelist variable is not empty
 resource "aws_wafv2_ip_set" "whitelist" {
   count = length(var.ip_whitelist) > 0 ? 1 : 0
 
@@ -261,14 +261,14 @@ resource "aws_wafv2_ip_set" "whitelist" {
 }
 
 # WAF ASSOCIATION WITH ALB
-  # Links the Web ACL to your Application Load Balancer
+# Links the Web ACL to your Application Load Balancer
 resource "aws_wafv2_web_acl_association" "alb" {
   resource_arn = var.alb_arn
   web_acl_arn  = aws_wafv2_web_acl.main.arn
 }
 
 # CLOUDWATCH LOG GROUP
-  # Stores all WAF logs: blocked requests, CAPTCHA challenges, etc.
+# Stores all WAF logs: blocked requests, CAPTCHA challenges, etc.
 resource "aws_cloudwatch_log_group" "waf" {
   name              = "aws-waf-logs-${var.project_name}-${var.environment}"
   retention_in_days = var.log_retention_days
@@ -282,14 +282,14 @@ resource "aws_cloudwatch_log_group" "waf" {
 }
 
 # WAF LOGGING CONFIGURATION
-    # Enables logging of all WAF actions to CloudWatch
+# Enables logging of all WAF actions to CloudWatch
 resource "aws_wafv2_web_acl_logging_configuration" "main" {
   resource_arn            = aws_wafv2_web_acl.main.arn
   log_destination_configs = ["${aws_cloudwatch_log_group.waf.arn}:*"]
 
   # Logging is essential for:
-    # - Monitoring attacks
-    # - Setting up alarms
-    # - Compliance and auditing
-    # - Debugging false positives
-  }
+  # - Monitoring attacks
+  # - Setting up alarms
+  # - Compliance and auditing
+  # - Debugging false positives
+}

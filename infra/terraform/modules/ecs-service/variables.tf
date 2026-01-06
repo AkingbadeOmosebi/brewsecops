@@ -99,7 +99,7 @@ variable "health_check" {
 variable "health_check_grace_period" {
   description = "Grace period for health checks in seconds"
   type        = number
-  default     = 300  # Incrased to 5 minutes for DB handshake connections
+  default     = 300 # Incrased to 5 minutes for DB handshake connections
 }
 
 variable "enable_execute_command" {
