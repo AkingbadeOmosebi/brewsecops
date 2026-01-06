@@ -19,20 +19,38 @@ variable "rate_limit" {
   default     = 2000
 }
 
+variable "enable_captcha" {
+  description = "Enable CAPTCHA challenges for suspicious requests"
+  type        = bool
+  default     = false
+}
+
+variable "captcha_on_rate_limit" {
+  description = "Show CAPTCHA challenge instead of blocking on rate limit (requires enable_captcha)"
+  type        = bool
+  default     = false
+}
+
 variable "ip_whitelist" {
-  description = "List of IP addresses to whitelist (CIDR notation)"
+  description = "List of IP addresses to whitelist (CIDR notation). These IPs bypass all WAF rules"
   type        = list(string)
   default     = []
 }
 
+variable "enable_geo_blocking" {
+  description = "Enable geographic blocking based on country codes"
+  type        = bool
+  default     = false
+}
+
 variable "blocked_countries" {
-  description = "List of country codes to block (e.g., ['CN', 'RU'])"
+  description = "List of country codes to block (ISO 3166-1 alpha-2). Example: ['CN', 'RU', 'KP']"
   type        = list(string)
   default     = []
 }
 
 variable "log_retention_days" {
-  description = "Number of days to retain WAF logs"
+  description = "Number of days to retain WAF logs in CloudWatch"
   type        = number
   default     = 30
 }

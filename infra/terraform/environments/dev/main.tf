@@ -122,7 +122,8 @@ module "waf" {
   aws_region         = var.aws_region
   rate_limit         = var.waf_rate_limit
   ip_whitelist       = var.waf_ip_whitelist
-  blocked_countries  = []
+  blocked_countries = var.blocked_countries
+  enable_geo_blocking = var.enable_geo_blocking
   log_retention_days = 30
 }
 

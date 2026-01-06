@@ -1,5 +1,5 @@
-# WAF Module
-# Creates WAF Web ACL with security rules
+# WAF Module - Enhanced with CAPTCHA, Bot Control, and Geographic Blocking
+# This module creates a comprehensive Web Application Firewall for your ALB
 
 data "aws_caller_identity" "current" {}
 
@@ -11,19 +11,39 @@ resource "aws_wafv2_web_acl" "main" {
     allow {}
   }
 
-  # Rule 1: Rate Limiting
+
+  # RULE 1: Rate Limiting with CAPTCHA Challenge
+  # Purpose: Prevent DDoS attacks and brute force attempts
+  # How it works:
+    #  Tracks requests per IP address
+    #  If IP exceeds limit in 5 min window → CAPTCHA or BLOCK
+    #  CAPTCHA: Shows puzzle, legitimate users solve and continue
+    #  BLOCK: Immediately rejects request (old behavior)
   rule {
     name     = "RateLimitRule"
     priority = 1
 
     action {
-      block {}
+      # If CAPTCHA enabled: shows challenge instead of blocking
+      dynamic "challenge" {
+        for_each = var.captcha_on_rate_limit ? [1] : []
+        content {
+          # Browser receives challenge, user solves CAPTCHA
+          # On success, browser retries request with token
+        }
+      }
+
+      # If CAPTCHA disabled: just block the request
+      dynamic "block" {
+        for_each = !var.captcha_on_rate_limit ? [1] : []
+        content {}
+      }
     }
 
     statement {
       rate_based_statement {
-        limit              = var.rate_limit
-        aggregate_key_type = "IP"
+        limit              = var.rate_limit          # requests per 5 min
+        aggregate_key_type = "IP"                    # track by IP address
       }
     }
 
@@ -34,13 +54,16 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Rule 2: AWS Managed Rules - Core Rule Set (XSS, SQL Injection)
+ 
+  # RULE 2: AWS Core Rule Set 
+    # Protection against: XSS, SQL injection, RCE, CSRF, XXE, etc.
+    # Maintained by AWS and updated regularly
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
     priority = 2
 
     override_action {
-      none {}
+      none {}  # Uses rule group's default actions
     }
 
     statement {
@@ -57,7 +80,9 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Rule 3: AWS Managed Rules - Known Bad Inputs
+ 
+  # RULE 3: Known Bad Inputs 
+    # Blocks: Log4j exploits, known malware, scanner signatures
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
     priority = 3
@@ -80,7 +105,10 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Rule 4: SQL Injection Protection
+ 
+  # RULE 4: SQL Injection Protection 
+  # Dedicated rule for SQL injection detection
+  # Catches: UNION SELECT, DROP TABLE, comment injection, etc.
   rule {
     name     = "AWSManagedRulesSQLiRuleSet"
     priority = 4
@@ -103,7 +131,11 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Rule 5: IP Whitelist (optional, if IP whitelist is provided)
+ 
+  # RULE 5: IP Whitelist (Optional, Tested on known IPs)
+    # Purpose: Allow specific IPs to bypass WAF rules entirely
+    # Use case: Internal IPs, partner APIs, monitoring services
+    # Only created if ip_whitelist variable contains IPs
   dynamic "rule" {
     for_each = length(var.ip_whitelist) > 0 ? [1] : []
 
@@ -112,7 +144,7 @@ resource "aws_wafv2_web_acl" "main" {
       priority = 5
 
       action {
-        allow {}
+        allow {}  # These IPs skip all other rules
       }
 
       statement {
@@ -129,16 +161,21 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  # Rule 6: Geographic Blocking (optional)
+ 
+  # RULE 6: Geographic Blocking 
+    # Purpose: Block requests from specific countries
+    # Use case: Compliance, regional restrictions, threat mitigation
+    # Example: blocked_countries = ["CN", "RU", "KP"]
+    # Only created if enable_geo_blocking is true AND countries list provided
   dynamic "rule" {
-    for_each = length(var.blocked_countries) > 0 ? [1] : []
+    for_each = var.enable_geo_blocking && length(var.blocked_countries) > 0 ? [1] : []
 
     content {
-      name     = "GeoBlockingRule"
+      name     = "GeographicBlockingRule"
       priority = 6
 
       action {
-        block {}
+        block {}  # Reject requests from these countries
       }
 
       statement {
@@ -152,6 +189,41 @@ resource "aws_wafv2_web_acl" "main" {
         metric_name                = "${var.project_name}-geo-block-${var.environment}"
         sampled_requests_enabled   = true
       }
+    }
+  }
+
+ 
+  # RULE 7: Bot Control (AWS Managed)
+ 
+  # Purpose: Detect and challenge automated requests
+        # Detects:
+        #   - Browser automation (Selenium, Puppeteer)
+        #   - Web scrapers
+        #   - Vulnerability scanners
+        #   - DDoS tools
+        #   - API abuse
+  
+  # Action: CHALLENGE (show CAPTCHA) by default
+  # Uses machine learning to distinguish humans from bots
+  rule {
+    name     = "AWSManagedRulesBotControlRuleSet"
+    priority = 7
+
+    override_action {
+      none {}  # Uses AWS default: Challenge bots
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesBotControlRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${var.project_name}-bot-control-${var.environment}"
+      sampled_requests_enabled   = true
     }
   }
 
@@ -169,7 +241,9 @@ resource "aws_wafv2_web_acl" "main" {
   }
 }
 
-# IP Set for whitelisting (only created if IPs are provided)
+# IP SET - Whitelist
+  # Resource for managing whitelisted IPs
+  # Only created if ip_whitelist variable is not empty
 resource "aws_wafv2_ip_set" "whitelist" {
   count = length(var.ip_whitelist) > 0 ? 1 : 0
 
@@ -186,13 +260,15 @@ resource "aws_wafv2_ip_set" "whitelist" {
   }
 }
 
-# Associate WAF with ALB
+# WAF ASSOCIATION WITH ALB
+  # Links the Web ACL to your Application Load Balancer
 resource "aws_wafv2_web_acl_association" "alb" {
   resource_arn = var.alb_arn
   web_acl_arn  = aws_wafv2_web_acl.main.arn
 }
 
-# CloudWatch Log Group for WAF logs
+# CLOUDWATCH LOG GROUP
+  # Stores all WAF logs: blocked requests, CAPTCHA challenges, etc.
 resource "aws_cloudwatch_log_group" "waf" {
   name              = "aws-waf-logs-${var.project_name}-${var.environment}"
   retention_in_days = var.log_retention_days
@@ -205,8 +281,15 @@ resource "aws_cloudwatch_log_group" "waf" {
   }
 }
 
-# WAF Logging Configuration
+# WAF LOGGING CONFIGURATION
+    # Enables logging of all WAF actions to CloudWatch
 resource "aws_wafv2_web_acl_logging_configuration" "main" {
   resource_arn            = aws_wafv2_web_acl.main.arn
   log_destination_configs = ["${aws_cloudwatch_log_group.waf.arn}:*"]
-}
+
+  # Logging is essential for:
+    # - Monitoring attacks
+    # - Setting up alarms
+    # - Compliance and auditing
+    # - Debugging false positives
+  }

@@ -70,3 +70,14 @@ variable "waf_ip_whitelist" {
   default     = []
 }
 
+variable "blocked_countries" {
+  description = "Country codes to block (ISO 3166-1 alpha-2)"
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_geo_blocking" {
+  description = "Enable geographic blocking"
+  type        = bool
+  default     = false
+}
