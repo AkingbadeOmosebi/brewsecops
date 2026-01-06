@@ -99,7 +99,7 @@ jobs:
           aws-region: eu-central-1
       
       - name: Run Infracost
-        uses: infracost/actions@v2
+        uses: infracost/actions@main
         with:
           path: infra/terraform/environments/dev
           api-key: ${{ secrets.INFRACOST_API_KEY }}
