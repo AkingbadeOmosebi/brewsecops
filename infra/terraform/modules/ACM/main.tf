@@ -38,7 +38,7 @@ resource "aws_route53_record" "cert_validation" {
   zone_id         = var.zone_id # This MUST be the Zone ID for brewsecops.online
 }
 
-# Certificate validation: This is a "wait" resource. 
+# Certificate validation: This is a "wait" resource.
 # It doesn't create infra; it tells Terraform to stay on this step until AWS confirms validation.
 resource "aws_acm_certificate_validation" "main" {
   certificate_arn         = aws_acm_certificate.main.arn

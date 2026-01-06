@@ -8,9 +8,9 @@ resource "aws_db_instance" "main" {
   allocated_storage = var.allocated_storage
   storage_type      = var.storage_type
   storage_encrypted = true
-  
+
   # Pointing to the KMS key defined below in this same file
-  kms_key_id        = aws_kms_key.brew_key.arn 
+  kms_key_id        = aws_kms_key.brew_key.arn
 
   db_name  = var.database_name
   username = var.master_username
@@ -24,7 +24,7 @@ resource "aws_db_instance" "main" {
   publicly_accessible     = false
   deletion_protection     = var.deletion_protection
   skip_final_snapshot     = var.skip_final_snapshot
-  
+
   # snapshot logic
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.project_name}-db-final-snapshot-${var.environment}-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
@@ -46,5 +46,5 @@ resource "aws_db_instance" "main" {
 # KMS Key for encryption
 resource "aws_kms_key" "brew_key" {
   deletion_window_in_days = var.kms_deletion_window
-  enable_key_rotation     = true 
+  enable_key_rotation     = true
 }

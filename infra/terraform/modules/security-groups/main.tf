@@ -19,7 +19,7 @@ resource "aws_security_group" "alb" {
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   security_group_id = aws_security_group.alb.id
   description       = "Allow HTTP from internet"
-  
+
   cidr_ipv4   = "0.0.0.0/0"
   from_port   = 80
   to_port     = 80
@@ -33,7 +33,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_http" {
 resource "aws_vpc_security_group_ingress_rule" "alb_https" {
   security_group_id = aws_security_group.alb.id
   description       = "Allow HTTPS from internet"
-  
+
   cidr_ipv4   = "0.0.0.0/0"
   from_port   = 443
   to_port     = 443
@@ -48,7 +48,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https" {
 resource "aws_vpc_security_group_egress_rule" "alb_all" {
   security_group_id = aws_security_group.alb.id
   description       = "Allow all outbound traffic"
-  
+
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "-1"
 
@@ -75,7 +75,7 @@ resource "aws_security_group" "ecs" {
 resource "aws_vpc_security_group_ingress_rule" "ecs_from_alb_frontend" {
   security_group_id = aws_security_group.ecs.id
   description       = "Allow frontend traffic from ALB"
-  
+
   referenced_security_group_id = aws_security_group.alb.id
   from_port                    = var.frontend_port
   to_port                      = var.frontend_port
@@ -89,7 +89,7 @@ resource "aws_vpc_security_group_ingress_rule" "ecs_from_alb_frontend" {
 resource "aws_vpc_security_group_ingress_rule" "ecs_from_alb_backend" {
   security_group_id = aws_security_group.ecs.id
   description       = "Allow backend traffic from ALB"
-  
+
   referenced_security_group_id = aws_security_group.alb.id
   from_port                    = var.backend_port
   to_port                      = var.backend_port
@@ -104,7 +104,7 @@ resource "aws_vpc_security_group_ingress_rule" "ecs_from_alb_backend" {
 resource "aws_vpc_security_group_egress_rule" "ecs_all" {
   security_group_id = aws_security_group.ecs.id
   description       = "Allow all outbound traffic"
-  
+
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "-1"
 
@@ -131,7 +131,7 @@ resource "aws_security_group" "rds" {
 resource "aws_vpc_security_group_ingress_rule" "rds_from_ecs" {
   security_group_id = aws_security_group.rds.id
   description       = "Allow PostgreSQL from ECS tasks"
-  
+
   referenced_security_group_id = aws_security_group.ecs.id
   from_port                    = 5432
   to_port                      = 5432
@@ -146,7 +146,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_ecs" {
 resource "aws_vpc_security_group_egress_rule" "rds_none" {
   security_group_id = aws_security_group.rds.id
   description       = "No outbound traffic needed"
-  
+
   cidr_ipv4   = "127.0.0.1/32"
   ip_protocol = "-1"
 

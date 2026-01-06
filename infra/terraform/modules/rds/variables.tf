@@ -101,5 +101,5 @@ variable "maintenance_window" {
 variable "kms_deletion_window" {
   description = "KMS key deletion window in days"
   type        = number
-  default     = 7  
+  default     = 7
 }

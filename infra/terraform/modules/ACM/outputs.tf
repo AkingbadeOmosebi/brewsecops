@@ -10,5 +10,5 @@ output "certificate_status" {
 
 output "certificate_arn" {
   description = "The ARN of the certificate. Use this to attach to ALB listeners."
-  value       = aws_acm_certificate_validation.main.certificate_arn 
+  value       = aws_acm_certificate_validation.main.certificate_arn
 }

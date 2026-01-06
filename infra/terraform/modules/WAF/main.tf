@@ -54,8 +54,8 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
- 
-  # RULE 2: AWS Core Rule Set 
+
+  # RULE 2: AWS Core Rule Set
     # Protection against: XSS, SQL injection, RCE, CSRF, XXE, etc.
     # Maintained by AWS and updated regularly
   rule {
@@ -80,8 +80,8 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
- 
-  # RULE 3: Known Bad Inputs 
+
+  # RULE 3: Known Bad Inputs
     # Blocks: Log4j exploits, known malware, scanner signatures
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
@@ -105,8 +105,8 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
- 
-  # RULE 4: SQL Injection Protection 
+
+  # RULE 4: SQL Injection Protection
   # Dedicated rule for SQL injection detection
   # Catches: UNION SELECT, DROP TABLE, comment injection, etc.
   rule {
@@ -131,7 +131,7 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
- 
+
   # RULE 5: IP Whitelist (Optional, Tested on known IPs)
     # Purpose: Allow specific IPs to bypass WAF rules entirely
     # Use case: Internal IPs, partner APIs, monitoring services
@@ -161,8 +161,8 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
- 
-  # RULE 6: Geographic Blocking 
+
+  # RULE 6: Geographic Blocking
     # Purpose: Block requests from specific countries
     # Use case: Compliance, regional restrictions, threat mitigation
     # Example: blocked_countries = ["CN", "RU", "KP"]
@@ -192,9 +192,9 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
- 
+
   # RULE 7: Bot Control (AWS Managed)
- 
+
   # Purpose: Detect and challenge automated requests
         # Detects:
         #   - Browser automation (Selenium, Puppeteer)
@@ -202,7 +202,7 @@ resource "aws_wafv2_web_acl" "main" {
         #   - Vulnerability scanners
         #   - DDoS tools
         #   - API abuse
-  
+
   # Action: CHALLENGE (show CAPTCHA) by default
   # Uses machine learning to distinguish humans from bots
   rule {
