@@ -104,7 +104,7 @@ module "route53" {
 
 # ACM Module
 module "acm" {
-  source = "../../modules/acm"
+  source = "../../modules/ACM"
 
   project_name = var.project_name
   environment  = var.environment
