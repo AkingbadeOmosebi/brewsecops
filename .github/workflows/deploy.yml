@@ -1,0 +1,416 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  TERRAFORM_VERSION: 1.5.0
+  TF_IN_AUTOMATION: true
+
+jobs:
+  # Stage 1: Code Quality & Security Checks (Parallel)
+  terraform-lint:
+    name: Terraform Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Terraform Format
+        run: terraform fmt -check -recursive infra/terraform/
+        continue-on-error: false
+
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    needs: [terraform-lint]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Initialize Terraform
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init -backend=false
+
+      - name: Validate Configuration
+        run: |
+          cd infra/terraform/environments/dev
+          terraform validate
+
+  tfsec-scan:
+    name: tfsec Security Scan
+    runs-on: ubuntu-latest
+    needs: [terraform-lint]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1
+        with:
+          working_directory: infra/terraform/
+          format: sarif
+          out_dir: results
+        continue-on-error: true
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: results/tfsec.sarif
+
+  checkov-scan:
+    name: Checkov Compliance Scan
+    runs-on: ubuntu-latest
+    needs: [terraform-lint]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infra/terraform/
+          framework: terraform
+          quiet: false
+          soft_fail: true
+        continue-on-error: true
+
+  infracost-estimate:
+    name: Infrastructure Cost Estimation
+    runs-on: ubuntu-latest
+    needs: [terraform-validate, tfsec-scan, checkov-scan]
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Run Infracost
+        uses: infracost/actions/comment@v2
+        with:
+          path: infra/terraform/environments/dev
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+        continue-on-error: true
+
+  # Stage 2: Terraform Plan
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: [infracost-estimate]
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      plan_exit_code: ${{ steps.plan.outputs.exit_code }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Initialize Terraform
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+      
+      - name: Generate Plan
+        id: plan
+        run: |
+          cd infra/terraform/environments/dev
+          terraform plan -out=tfplan -no-color
+          echo "exit_code=0" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Save Plan Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: infra/terraform/environments/dev/tfplan
+          retention-days: 1
+
+  # Stage 3: Human Approval Gate
+  approval-gate:
+    name: Approval Gate
+    runs-on: ubuntu-latest
+    needs: [terraform-plan]
+    environment:
+      name: production
+    steps:
+      - name: Waiting for Approval
+        run: echo "Deployment approved and ready to proceed"
+
+  # Stage 4: Infrastructure Deployment (Logical Order)
+  deploy-vpc:
+    name: Deploy VPC Foundation
+    runs-on: ubuntu-latest
+    needs: [approval-gate]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy VPC
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.vpc -auto-approve
+
+  deploy-security-groups:
+    name: Deploy Security Groups
+    runs-on: ubuntu-latest
+    needs: [deploy-vpc]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy Security Groups
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.security_groups -auto-approve
+
+  deploy-database:
+    name: Deploy RDS Database
+    runs-on: ubuntu-latest
+    needs: [deploy-security-groups]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy RDS
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.rds -auto-approve
+
+  deploy-compute:
+    name: Deploy ECS & Container Infrastructure
+    runs-on: ubuntu-latest
+    needs: [deploy-database]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy ECS Cluster
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.ecs_cluster -auto-approve
+      
+      - name: Deploy ECR Repositories
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.ecr -auto-approve
+
+  deploy-networking:
+    name: Deploy ALB & Networking
+    runs-on: ubuntu-latest
+    needs: [deploy-compute]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy ALB
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.alb -auto-approve
+
+  deploy-dns-ssl:
+    name: Deploy DNS & SSL/TLS
+    runs-on: ubuntu-latest
+    needs: [deploy-networking]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy ACM Certificate
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.acm -auto-approve
+      
+      - name: Deploy Route53 DNS
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.route53 -auto-approve
+
+  deploy-waf:
+    name: Deploy WAF Protection
+    runs-on: ubuntu-latest
+    needs: [deploy-dns-ssl]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy WAF
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.waf -auto-approve
+
+  deploy-services:
+    name: Deploy ECS Services
+    runs-on: ubuntu-latest
+    needs: [deploy-waf]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+      
+      - name: Deploy ECS Services
+        run: |
+          cd infra/terraform/environments/dev
+          terraform init
+          terraform apply -target=module.ecs_service_frontend -target=module.ecs_service_backend -auto-approve
+
+  deployment-notification:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-services]
+    if: always()
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create Deployment Status
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ needs.deploy-services.result }}' === 'success' ? 'success' : 'failure';
+            const description = status === 'success' 
+              ? '✅ Infrastructure deployed successfully' 
+              : '❌ Deployment failed';
+            
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: status,
+              description: description,
+              context: 'deployment/infrastructure'
+            });
+            
+            console.log(description);
