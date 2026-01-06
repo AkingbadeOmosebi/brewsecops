@@ -222,3 +222,13 @@ module "ecs_service_backend" {
   autoscaling_memory_target = 80
 }
 
+
+# OIDC Module for GitHub Actions
+module "oidc" {
+     source = "../../modules/oidc"
+     project_name = var.project_name
+     environment  = var.environment
+     aws_region   = var.aws_region
+     github_org   = "AkingbadeOmosebi"
+     github_repo  = "brewsecops"
+   }
