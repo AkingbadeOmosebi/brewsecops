@@ -64,6 +64,26 @@ jobs:
           terraform init
           terraform destroy -target=module.ecs_service_frontend -target=module.ecs_service_backend -auto-approve
 
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
+
   destroy-waf:
     name: Destroy WAF Protection
     runs-on: ubuntu-latest
@@ -89,6 +109,26 @@ jobs:
           cd infra/terraform/environments/dev
           terraform init
           terraform destroy -target=module.waf -auto-approve
+
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
 
   destroy-dns-ssl:
     name: Destroy DNS & SSL/TLS
@@ -122,6 +162,26 @@ jobs:
           terraform init
           terraform destroy -target=module.acm -auto-approve
 
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
+
   destroy-alb:
     name: Destroy ALB & Networking
     runs-on: ubuntu-latest
@@ -147,6 +207,26 @@ jobs:
           cd infra/terraform/environments/dev
           terraform init
           terraform destroy -target=module.alb -auto-approve
+
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
 
   destroy-compute:
     name: Destroy ECS & Container Infrastructure
@@ -180,6 +260,26 @@ jobs:
           terraform init
           terraform destroy -target=module.ecs_cluster -auto-approve
 
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
+
   destroy-database:
     name: Destroy RDS Database
     runs-on: ubuntu-latest
@@ -207,6 +307,26 @@ jobs:
           terraform init
           terraform destroy -target=module.rds -auto-approve
 
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
+
   destroy-security-groups:
     name: Destroy Security Groups
     runs-on: ubuntu-latest
@@ -233,6 +353,26 @@ jobs:
           terraform init
           terraform destroy -target=module.security_groups -auto-approve
 
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
+
   destroy-vpc:
     name: Destroy VPC Foundation
     runs-on: ubuntu-latest
@@ -258,6 +398,26 @@ jobs:
           cd infra/terraform/environments/dev
           terraform init
           terraform destroy -target=module.vpc -auto-approve
+
+      - name: Cleanup Stuck Terraform Locks
+        if: failure()
+        run: |
+          cd infra/terraform/environments/dev
+          
+          echo "🔍 Checking for stuck locks..."
+          
+          LOCK_ID=$(aws dynamodb scan \
+            --table-name brewsecops-terraform-locks \
+            --query 'Items[0].LockID.S' \
+            --output text 2>/dev/null)
+          
+          if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
+            echo "🔓 Found stuck lock: $LOCK_ID"
+            terraform force-unlock "$LOCK_ID" -force
+            echo "✅ Lock released successfully"
+          else
+            echo "✨ No stuck locks found"
+          fi
 
   destruction-summary:
     name: Destruction Summary
