@@ -82,22 +82,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destroy-waf:
@@ -144,22 +135,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destroy-dns-ssl:
@@ -212,22 +194,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destroy-alb:
@@ -274,22 +247,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destroy-compute:
@@ -342,22 +306,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destroy-database:
@@ -405,22 +360,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destroy-security-groups:
@@ -467,22 +413,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destroy-vpc:
@@ -529,22 +466,13 @@ jobs:
 
       - name: Cleanup Stuck Terraform Locks
         if: failure()
+        continue-on-error: true
         run: |
           cd infra/terraform/environments/dev
-          
-          echo "🔍 Checking for stuck locks..."
-          
-          LOCK_ID=$(aws dynamodb scan \
-            --table-name brewsecops-terraform-locks \
-            --query 'Items[0].LockID.S' \
-            --output text 2>/dev/null)
-          
+          LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock: $LOCK_ID"
-            terraform force-unlock "$LOCK_ID" -force
-            echo "✅ Lock released successfully"
-          else
-            echo "✨ No stuck locks found"
+            echo "🔓 Found stuck lock: $LOCK_ID, attempting to release..."
+            terraform force-unlock "$LOCK_ID" -force || true
           fi
 
   destruction-summary:
