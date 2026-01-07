@@ -1,9 +1,9 @@
 name: DevSecOps Pipeline
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
+  workflow_run:
+    workflows: ["Deploy Infrastructure"]
+    types: [completed]
     branches: [main]
 
 env:
@@ -21,11 +21,31 @@ permissions:
   security-events: write   # Upload security scan results (SARIF)
 
 jobs:
+  # Check if Deploy Infrastructure workflow succeeded
+  check-deploy-status:
+    name: Check Infrastructure Deployment Status
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_success: ${{ steps.check.outputs.deploy_success }}
+    steps:
+      - name: Check Deploy Workflow Status
+        id: check
+        run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" == "success" ]; then
+            echo "deploy_success=true" >> $GITHUB_OUTPUT
+            echo "✅ Deploy Infrastructure completed successfully"
+          else
+            echo "deploy_success=false" >> $GITHUB_OUTPUT
+            echo "❌ Deploy Infrastructure failed - skipping pipeline"
+          fi
+
   # ============================================
   # JOB 1: Security Scanning
   # ============================================
   security-scan:
     name: Security Scanning
+    needs: check-deploy-status
+    if: needs.check-deploy-status.outputs.deploy_success == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     
@@ -304,7 +324,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-
       # Convert repository owner to lowercase for GHCR
       - name: Convert Repository Owner to Lowercase
         id: repo_owner
@@ -332,6 +351,93 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
 
+      # ============================================
+      # ECR PUSH & SIGN
+      # ============================================
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
+          aws-region: eu-central-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag Images for ECR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          
+          docker tag ${{ env.IMAGE_FRONTEND }}:$VERSION \
+            $ECR_REGISTRY/brewsecops-frontend:$VERSION
+          docker tag ${{ env.IMAGE_FRONTEND }}:$VERSION \
+            $ECR_REGISTRY/brewsecops-frontend:latest
+
+          docker tag ${{ env.IMAGE_BACKEND }}:$VERSION \
+            $ECR_REGISTRY/brewsecops-backend:$VERSION
+          docker tag ${{ env.IMAGE_BACKEND }}:$VERSION \
+            $ECR_REGISTRY/brewsecops-backend:latest
+
+      - name: Push Frontend to ECR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          echo "Pushing frontend to ECR..."
+          docker push $ECR_REGISTRY/brewsecops-frontend:$VERSION
+          docker push $ECR_REGISTRY/brewsecops-frontend:latest
+          echo "✅ Frontend pushed to ECR"
+
+      - name: Push Backend to ECR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          echo "Pushing backend to ECR..."
+          docker push $ECR_REGISTRY/brewsecops-backend:$VERSION
+          docker push $ECR_REGISTRY/brewsecops-backend:latest
+          echo "✅ Backend pushed to ECR"
+
+      # Sign ECR images with Cosign (keyless OIDC)
+      - name: Sign Frontend Image in ECR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          echo "Signing frontend in ECR..."
+          cosign sign --yes $ECR_REGISTRY/brewsecops-frontend:$VERSION
+          cosign sign --yes $ECR_REGISTRY/brewsecops-frontend:latest
+          echo "✅ Frontend signed in ECR"
+
+      - name: Sign Backend Image in ECR
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          echo "Signing backend in ECR..."
+          cosign sign --yes $ECR_REGISTRY/brewsecops-backend:$VERSION
+          cosign sign --yes $ECR_REGISTRY/brewsecops-backend:latest
+          echo "✅ Backend signed in ECR"
+
+      # Attest ECR images with SBOM
+      - name: Attach Frontend SBOM to ECR Image
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          echo "Attesting frontend SBOM to ECR..."
+          cosign attest --yes --type spdx --predicate frontend-sbom.spdx.json \
+            $ECR_REGISTRY/brewsecops-frontend:$VERSION
+          echo "✅ Frontend SBOM attested in ECR"
+
+      - name: Attach Backend SBOM to ECR Image
+        run: |
+          VERSION="${{ needs.build-and-scan.outputs.version }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          echo "Attesting backend SBOM to ECR..."
+          cosign attest --yes --type spdx --predicate backend-sbom.spdx.json \
+            $ECR_REGISTRY/brewsecops-backend:$VERSION
+          echo "✅ Backend SBOM attested in ECR"
+
+      # ============================================
+      # GHCR PUSH & SIGN
+      # ============================================
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -339,7 +445,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 2: Tag images for GHCR  # Converted to lowercases for GHCR
       - name: Tag Images for GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
@@ -355,57 +460,75 @@ jobs:
           docker tag ${{ env.IMAGE_BACKEND }}:$VERSION \
             ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:latest
 
-      # Step 3: Push to GHCR
       - name: Push Frontend to GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          echo "Pushing frontend to GHCR..."
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:latest
+          echo "✅ Frontend pushed to GHCR"
 
       - name: Push Backend to GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          echo "Pushing backend to GHCR..."
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:latest
+          echo "✅ Backend pushed to GHCR"
 
-      # Step 4: Sign images with Cosign (keyless OIDC)
-      - name: Sign Frontend Image
+      # Sign GHCR images with Cosign (keyless OIDC)
+      - name: Sign Frontend Image in GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          echo "Signing frontend in GHCR..."
           cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
+          cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:latest
+          echo "✅ Frontend signed in GHCR"
 
-      - name: Sign Backend Image
+      - name: Sign Backend Image in GHCR
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          echo "Signing backend in GHCR..."
           cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
+          cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:latest
+          echo "✅ Backend signed in GHCR"
 
-      # Step 5: Attach SBOMs to signed images
-      - name: Attach Frontend SBOM
+      # Attest GHCR images with SBOM
+      - name: Attach Frontend SBOM to GHCR Image
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
+          echo "Attesting frontend SBOM to GHCR..."
           cosign attest --yes --type spdx --predicate frontend-sbom.spdx.json \
             ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
+          echo "✅ Frontend SBOM attested in GHCR"
 
-      - name: Attach Backend SBOM
+      - name: Attach Backend SBOM to GHCR Image
         run: |
           VERSION="${{ needs.build-and-scan.outputs.version }}"
           OWNER_LC="${{ steps.repo_owner.outputs.owner_lc }}"
-          cosign attest --yes --type spdx --predicate frontend-sbom.spdx.json \
+          echo "Attesting backend SBOM to GHCR..."
+          cosign attest --yes --type spdx --predicate backend-sbom.spdx.json \
             ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
+          echo "✅ Backend SBOM attested in GHCR"
 
-      # Step 6: Create deployment status notification
+      # ============================================
+      # DEPLOYMENT NOTIFICATION
+      # ============================================
       - name: Create Deployment Status Issue
         uses: actions/github-script@v7
         with:
           script: |
             const version = '${{ needs.build-and-scan.outputs.version }}';
-            const frontendImage = `${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:${version}`;
-            const backendImage = `${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:${version}`;
+            const ecrRegistry = '${{ steps.login-ecr.outputs.registry }}';
+            const frontendGHCR = `${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_FRONTEND }}:${version}`;
+            const backendGHCR = `${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_BACKEND }}:${version}`;
+            const frontendECR = `${ecrRegistry}/brewsecops-frontend:${version}`;
+            const backendECR = `${ecrRegistry}/brewsecops-backend:${version}`;
             
             const body = `## Deployment Status: SUCCESS
             
@@ -413,26 +536,41 @@ jobs:
             **Deployed At:** ${new Date().toISOString()}
             **Approved By:** @${{ github.actor }}
             
-            ### Images Published
-            - Frontend: \`${frontendImage}\`
-            - Backend: \`${backendImage}\`
+            ### Images Published & Signed
+            
+            **ECR (Production - Used by ECS)**
+            - Frontend: \`${frontendECR}\`
+            - Backend: \`${backendECR}\`
+            - Status: ✅ Signed with Cosign (OIDC) + SBOM attested
+            
+            **GHCR (Public - Portfolio)**
+            - Frontend: \`${frontendGHCR}\`
+            - Backend: \`${backendGHCR}\`
+            - Status: ✅ Signed with Cosign (OIDC) + SBOM attested
             
             ### Security Validation
             - Gitleaks: No secrets detected
             - OWASP + Snyk: Dependency scans passed
             - Trivy: No critical vulnerabilities
-            - Cosign: Images signed with keyless OIDC
-            - SBOM: Attached in SPDX format
+            - **Cosign:** Images signed with keyless OIDC (ECR + GHCR)
+            - **SBOM:** Attached in SPDX format (ECR + GHCR)
             
-            ### Registry
-            - [Frontend Package](https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_FRONTEND }})
-            - [Backend Package](https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_BACKEND }})
+            ### Supply Chain Integrity
+            - All images signed and verified
+            - Complete SBOM for supply chain transparency
+            - Ready for production ECS deployment
+            
+            ### Registries
+            - [ECR Frontend](https://eu-central-1.console.aws.amazon.com/ecr/repositories/private/194722436853/brewsecops-frontend)
+            - [ECR Backend](https://eu-central-1.console.aws.amazon.com/ecr/repositories/private/194722436853/brewsecops-backend)
+            - [GHCR Frontend](https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_FRONTEND }})
+            - [GHCR Backend](https://github.com/${{ github.repository }}/pkgs/container/${{ env.IMAGE_BACKEND }})
             `;
             
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Deployment v${version} - SUCCESS`,
+              title: `Deployment v${version} - SUCCESS (Signed & Attested)`,
               body: body,
-              labels: ['deployment', 'success']
+              labels: ['deployment', 'success', 'supply-chain']
             });

@@ -101,7 +101,9 @@ data "aws_iam_policy_document" "terraform" {
       "route53:*",
       "acm:*",
       "logs:*",
-      "cloudwatch:*"
+      "cloudwatch:*",
+      "kms:*",
+      "application-autoscaling:*"
     ]
     resources = ["*"]
   }
@@ -161,5 +163,25 @@ data "aws_iam_policy_document" "ecs" {
     effect    = "Allow"
     actions   = ["iam:PassRole"]
     resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*"]
+  }
+}
+
+
+# Policy for Secrets Manager
+resource "aws_iam_role_policy" "secrets_manager" {
+  name   = "github-actions-secrets-manager"
+  role   = aws_iam_role.github_actions.id
+  policy = data.aws_iam_policy_document.secrets_manager.json
+}
+
+data "aws_iam_policy_document" "secrets_manager" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:brewsecops/*"
+    ]
   }
 }

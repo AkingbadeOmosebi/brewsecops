@@ -405,6 +405,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [destroy-vpc]
     if: always()
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v3
       
