@@ -58,6 +58,22 @@ jobs:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
       
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
+      
       - name: Destroy ECS Services
         run: |
           cd infra/terraform/environments/dev
@@ -104,6 +120,22 @@ jobs:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
       
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
+      
       - name: Destroy WAF
         run: |
           cd infra/terraform/environments/dev
@@ -149,6 +181,22 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
+      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       
       - name: Destroy Route53 DNS
         run: |
@@ -202,6 +250,22 @@ jobs:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
       
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
+      
       - name: Destroy ALB
         run: |
           cd infra/terraform/environments/dev
@@ -247,6 +311,22 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
+      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       
       - name: Destroy ECR Repositories
         run: |
@@ -301,6 +381,22 @@ jobs:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
       
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
+      
       - name: Destroy RDS
         run: |
           cd infra/terraform/environments/dev
@@ -347,6 +443,22 @@ jobs:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
       
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
+      
       - name: Destroy Security Groups
         run: |
           cd infra/terraform/environments/dev
@@ -392,6 +504,22 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
+      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       
       - name: Destroy VPC
         run: |
