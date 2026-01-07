@@ -91,7 +91,7 @@ jobs:
           fi
           
           # Proceed with destroy
-          terraform destroy -target=module.ecs_service_frontend -target=module.ecs_service_backend -auto-approve
+          terraform destroy -lock=false -target=module.ecs_service_frontend -target=module.ecs_service_backend -auto-approve
 
   destroy-waf:
     name: Destroy WAF Protection
@@ -133,7 +133,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.waf -auto-approve
+          terraform destroy -lock=false -target=module.waf -auto-approve
 
   destroy-dns-ssl:
     name: Destroy DNS & SSL/TLS
@@ -175,13 +175,13 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.route53 -auto-approve
+          terraform destroy -lock=false -target=module.route53 -auto-approve
       
       - name: Destroy ACM Certificate
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.acm -auto-approve
+          terraform destroy -lock=false -target=module.acm -auto-approve
 
   destroy-alb:
     name: Destroy ALB & Networking
@@ -223,7 +223,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.alb -auto-approve
+          terraform destroy -lock=false -target=module.alb -auto-approve
 
   destroy-compute:
     name: Destroy ECS & Container Infrastructure
@@ -265,13 +265,13 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.ecr -auto-approve
+          terraform destroy -lock=false -target=module.ecr -auto-approve
       
       - name: Destroy ECS Cluster
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.ecs_cluster -auto-approve
+          terraform destroy -lock=false -target=module.ecs_cluster -auto-approve
 
   destroy-database:
     name: Destroy RDS Database
@@ -314,7 +314,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.rds -auto-approve
+          terraform destroy -lock=false -target=module.rds -auto-approve
 
   destroy-security-groups:
     name: Destroy Security Groups
@@ -356,7 +356,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.security_groups -auto-approve
+          terraform destroy -lock=false -target=module.security_groups -auto-approve
 
   destroy-vpc:
     name: Destroy VPC Foundation
@@ -398,7 +398,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform destroy -target=module.vpc -auto-approve
+          terraform destroy -lock=false -target=module.vpc -auto-approve
 
   destruction-summary:
     name: Destruction Summary
