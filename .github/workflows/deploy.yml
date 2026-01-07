@@ -471,16 +471,35 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-services]
     if: always()
+    permissions:
+      contents: read
+      statuses: write          
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - name: Create Deployment Status
         uses: actions/github-script@v6
         with:
           script: |
-            const status = '${{ needs.deploy-services.result }}' === 'success' ? 'success' : 'failure';
-            const description = status === 'success' 
-              ? '✅ Infrastructure deployed successfully' 
-              : '❌ Deployment failed';
+            const jobResult = '${{ needs.deploy-services.result }}';
+            
+            let status, description;
+            
+            if (jobResult === 'success') {
+              status = 'success';
+              description = '✅ Infrastructure deployed successfully';
+            } else if (jobResult === 'failure') {
+              status = 'failure';
+              description = '❌ Deployment failed - check logs';
+            } else if (jobResult === 'skipped') {
+              status = 'pending';
+              description = '⏭️ Deployment skipped';
+            } else {
+              status = 'error';
+              description = '⚠️ Unknown deployment status';
+            }
+            
+            console.log(`Posting status: ${status} - ${description}`);
             
             github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
@@ -490,5 +509,3 @@ jobs:
               description: description,
               context: 'deployment/infrastructure'
             });
-            
-            console.log(description);
