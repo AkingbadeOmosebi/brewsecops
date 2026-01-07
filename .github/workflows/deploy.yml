@@ -11,17 +11,14 @@ env:
   TF_IN_AUTOMATION: true
 
 jobs:
-  # Stage 1: Code Quality & Security Checks (Parallel)
   terraform-lint:
     name: Terraform Format Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Terraform Format
         run: terraform fmt -check -recursive infra/terraform/
         continue-on-error: false
@@ -32,16 +29,13 @@ jobs:
     needs: [terraform-lint]
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Initialize Terraform
         run: |
           cd infra/terraform/environments/dev
           terraform init -backend=false
-
       - name: Validate Configuration
         run: |
           cd infra/terraform/environments/dev
@@ -53,7 +47,6 @@ jobs:
     needs: [terraform-lint]
     steps:
       - uses: actions/checkout@v4
-      
       - name: Run Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -68,7 +61,6 @@ jobs:
     needs: [terraform-lint]
     steps:
       - uses: actions/checkout@v4
-      
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
         with:
@@ -87,37 +79,31 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
-
       - name: Setup Infracost
         uses: infracost/actions/setup@v3
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
-
       - name: Generate Cost Estimate
         run: |
           cd infra/terraform/environments/dev
           infracost breakdown --path . \
             --format json \
             --out-file /tmp/infracost.json
-
       - name: Upload Cost Artifact
         uses: actions/upload-artifact@v4
         with:
           name: infracost-estimate
           path: /tmp/infracost.json
           retention-days: 7
-
       - name: Post Cost Summary
         run: |
           echo "## 💰 Infrastructure Cost Estimate" >> $GITHUB_STEP_SUMMARY
           infracost output --path /tmp/infracost.json --format table >> $GITHUB_STEP_SUMMARY
 
-  # Stage 2: Terraform Plan
   terraform-plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
@@ -129,22 +115,18 @@ jobs:
       plan_exit_code: ${{ steps.plan.outputs.exit_code }}
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
       - name: Initialize Terraform
         run: |
           cd infra/terraform/environments/dev
           terraform init
-      
       - name: Generate Plan
         id: plan
         run: |
@@ -152,7 +134,6 @@ jobs:
           terraform plan -out=tfplan -no-color
           echo "exit_code=0" >> $GITHUB_OUTPUT
         continue-on-error: true
-
       - name: Save Plan Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -160,7 +141,6 @@ jobs:
           path: infra/terraform/environments/dev/tfplan
           retention-days: 1
 
-  # Stage 3: Human Approval Gate
   approval-gate:
     name: Approval Gate
     runs-on: ubuntu-latest
@@ -171,7 +151,6 @@ jobs:
       - name: Waiting for Approval
         run: echo "Deployment approved and ready to proceed"
 
-  # Stage 4: Infrastructure Deployment (Logical Order)
   deploy-vpc:
     name: Deploy VPC Foundation
     runs-on: ubuntu-latest
@@ -181,17 +160,29 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy VPC
         run: |
           cd infra/terraform/environments/dev
@@ -207,17 +198,29 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy Security Groups
         run: |
           cd infra/terraform/environments/dev
@@ -233,17 +236,29 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy RDS
         run: |
           cd infra/terraform/environments/dev
@@ -259,23 +274,34 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy ECS Cluster
         run: |
           cd infra/terraform/environments/dev
           terraform init
           terraform apply -target=module.ecs_cluster -auto-approve
-      
       - name: Deploy ECR Repositories
         run: |
           cd infra/terraform/environments/dev
@@ -291,17 +317,29 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy ALB
         run: |
           cd infra/terraform/environments/dev
@@ -317,23 +355,34 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy ACM Certificate
         run: |
           cd infra/terraform/environments/dev
           terraform init
           terraform apply -target=module.acm -auto-approve
-      
       - name: Deploy Route53 DNS
         run: |
           cd infra/terraform/environments/dev
@@ -349,17 +398,29 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy WAF
         run: |
           cd infra/terraform/environments/dev
@@ -376,17 +437,29 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
-      
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::194722436853:role/github-actions-brewsecops-role
           aws-region: eu-central-1
-      
+      - name: Get Secrets from AWS Secrets Manager
+        run: |
+          DB_PASSWORD=$(aws secretsmanager get-secret-value \
+            --secret-id brewsecops/dev/db-password \
+            --query SecretString \
+            --output text \
+            --region eu-central-1)
+          echo "TF_VAR_db_master_password=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "TF_VAR_domain_name=brewsecops.online" >> $GITHUB_ENV
+          echo "TF_VAR_frontend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_backend_image_tag=dev" >> $GITHUB_ENV
+          echo "TF_VAR_waf_rate_limit=2000" >> $GITHUB_ENV
+          echo "TF_VAR_waf_ip_whitelist=[]" >> $GITHUB_ENV
+          echo "TF_VAR_blocked_countries=[\"CN\",\"RU\",\"KP\"]" >> $GITHUB_ENV
+          echo "TF_VAR_enable_geo_blocking=true" >> $GITHUB_ENV
       - name: Deploy ECS Services
         run: |
           cd infra/terraform/environments/dev
@@ -400,7 +473,6 @@ jobs:
     if: always()
     steps:
       - uses: actions/checkout@v4
-      
       - name: Create Deployment Status
         uses: actions/github-script@v6
         with:
