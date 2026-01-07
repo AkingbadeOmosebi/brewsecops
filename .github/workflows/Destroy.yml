@@ -80,14 +80,14 @@ jobs:
           terraform init
           
           # Pre-cleanup: Release any stuck locks before destroy
-          echo "🔍 Checking for stuck locks..."
+          echo " Checking for stuck locks..."
           LOCK_ID=$(aws dynamodb scan --table-name brewsecops-terraform-locks --query 'Items[0].LockID.S' --output text 2>/dev/null || echo "")
           if [ ! -z "$LOCK_ID" ] && [ "$LOCK_ID" != "None" ]; then
-            echo "🔓 Found stuck lock, releasing: $LOCK_ID"
+            echo " Found stuck lock, releasing: $LOCK_ID"
             terraform force-unlock "$LOCK_ID" -force || true
-            echo "✅ Lock released, proceeding with destroy"
+            echo "Lock released, proceeding with destroy"
           else
-            echo "✨ No stuck locks found"
+            echo " No stuck locks found"
           fi
           
           # Proceed with destroy
@@ -417,7 +417,7 @@ jobs:
           script: |
             const status = '${{ needs.destroy-vpc.result }}' === 'success' ? 'success' : 'failure';
             const description = status === 'success' 
-              ? '✅ Infrastructure destroyed successfully' 
+              ? 'Infrastructure destroyed successfully' 
               : '❌ Destruction failed - manual cleanup may be required';
             
             github.rest.repos.createCommitStatus({
