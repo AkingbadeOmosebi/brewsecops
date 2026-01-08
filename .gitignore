@@ -73,3 +73,14 @@ echo "node_modules/
 .DS_Store
 postgres_data/
 .vscode/" > .gitignore
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

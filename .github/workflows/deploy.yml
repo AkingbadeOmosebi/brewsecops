@@ -11,9 +11,24 @@ env:
   TF_IN_AUTOMATION: true
 
 jobs:
+  gitleaks-scan:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
   terraform-lint:
     name: Terraform Format Check
     runs-on: ubuntu-latest
+    needs: [gitleaks-scan]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v2
@@ -504,16 +519,16 @@ jobs:
             
             if (jobResult === 'success') {
               status = 'success';
-              description = '✅ Infrastructure deployed successfully';
+              description = ' Infrastructure deployed successfully';
             } else if (jobResult === 'failure') {
               status = 'failure';
-              description = '❌ Deployment failed - check logs';
+              description = ' Deployment failed - check logs';
             } else if (jobResult === 'skipped') {
               status = 'pending';
-              description = '⏭️ Deployment skipped';
+              description = ' Deployment skipped';
             } else {
               status = 'error';
-              description = '⚠️ Unknown deployment status';
+              description = ' Unknown deployment status';
             }
             
             console.log(`Posting status: ${status} - ${description}`);

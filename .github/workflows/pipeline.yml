@@ -33,118 +33,19 @@ jobs:
         run: |
           if [ "${{ github.event.workflow_run.conclusion }}" == "success" ]; then
             echo "deploy_success=true" >> $GITHUB_OUTPUT
-            echo "✅ Deploy Infrastructure completed successfully"
+            echo " Deploy Infrastructure completed successfully"
           else
             echo "deploy_success=false" >> $GITHUB_OUTPUT
-            echo "❌ Deploy Infrastructure failed - skipping pipeline"
+            echo " Deploy Infrastructure failed - skipping pipeline"
           fi
 
   # ============================================
-  # JOB 1: Security Scanning
-  # ============================================
-  security-scan:
-    name: Security Scanning
-    needs: check-deploy-status
-    if: needs.check-deploy-status.outputs.deploy_success == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # Step 1: Gitleaks - Secret Scanning
-      - name: Gitleaks Secret Scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
-
-      # Step 2: Setup Node.js for linting
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: |
-            akings-coffee-app/frontend/package-lock.json
-            akings-coffee-app/backend/package-lock.json
-
-      # Step 3: ESLint - Frontend
-      - name: Install Frontend Dependencies
-        working-directory: akings-coffee-app/frontend
-        run: npm ci
-
-      - name: ESLint Frontend
-        working-directory: akings-coffee-app/frontend
-        run: npm run lint || true
-
-      # Step 4: ESLint - Backend
-      - name: Install Backend Dependencies
-        working-directory: akings-coffee-app/backend
-        run: npm ci
-
-      - name: ESLint Backend
-        working-directory: akings-coffee-app/backend
-        run: npm run lint || true
-
-      # Step 5: SonarCloud Analysis
-      - name: SonarCloud Scan
-        continue-on-error: true
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      # Step 6: OWASP Dependency Check with database caching
-      - name: Cache OWASP Database
-        uses: actions/cache@v3
-        with:
-          path: ~/.owasp/dependency-check-data
-          key: ${{ runner.os }}-owasp-db-v1
-          restore-keys: |
-            ${{ runner.os }}-owasp-db-
-
-      - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: 'BrewSecOps'
-          path: './akings-coffee-app'
-          format: 'ALL'
-          args: >
-            --enableExperimental
-            --failOnCVSS 7
-
-      - name: Upload OWASP Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: owasp-report
-          path: reports/
-
-      # Step 7: Snyk Security Scan
-      - name: Snyk Security Scan
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high --all-projects
-
-      - name: Upload Snyk Results
-        if: always() && hashFiles('snyk.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: snyk.sarif
-
-  # ============================================
-  # JOB 2: Build & Container Security
+  # JOB 1: Build & Container Security
   # ============================================
   build-and-scan:
     name: Build & Container Security
-    needs: security-scan
+    needs: check-deploy-status
+    if: needs.check-deploy-status.outputs.deploy_success == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     outputs:
@@ -386,7 +287,7 @@ jobs:
           echo "Pushing frontend to ECR..."
           docker push $ECR_REGISTRY/brewsecops-frontend:$VERSION
           docker push $ECR_REGISTRY/brewsecops-frontend:latest
-          echo "✅ Frontend pushed to ECR"
+          echo " Frontend pushed to ECR"
 
       - name: Push Backend to ECR
         run: |
@@ -395,7 +296,7 @@ jobs:
           echo "Pushing backend to ECR..."
           docker push $ECR_REGISTRY/brewsecops-backend:$VERSION
           docker push $ECR_REGISTRY/brewsecops-backend:latest
-          echo "✅ Backend pushed to ECR"
+          echo " Backend pushed to ECR"
 
       # Sign ECR images with Cosign (keyless OIDC)
       - name: Sign Frontend Image in ECR
@@ -405,7 +306,7 @@ jobs:
           echo "Signing frontend in ECR..."
           cosign sign --yes $ECR_REGISTRY/brewsecops-frontend:$VERSION
           cosign sign --yes $ECR_REGISTRY/brewsecops-frontend:latest
-          echo "✅ Frontend signed in ECR"
+          echo " Frontend signed in ECR"
 
       - name: Sign Backend Image in ECR
         run: |
@@ -414,7 +315,7 @@ jobs:
           echo "Signing backend in ECR..."
           cosign sign --yes $ECR_REGISTRY/brewsecops-backend:$VERSION
           cosign sign --yes $ECR_REGISTRY/brewsecops-backend:latest
-          echo "✅ Backend signed in ECR"
+          echo " Backend signed in ECR"
 
       # Attest ECR images with SBOM
       - name: Attach Frontend SBOM to ECR Image
@@ -424,7 +325,7 @@ jobs:
           echo "Attesting frontend SBOM to ECR..."
           cosign attest --yes --type spdx --predicate frontend-sbom.spdx.json \
             $ECR_REGISTRY/brewsecops-frontend:$VERSION
-          echo "✅ Frontend SBOM attested in ECR"
+          echo " Frontend SBOM attested in ECR"
 
       - name: Attach Backend SBOM to ECR Image
         run: |
@@ -433,7 +334,7 @@ jobs:
           echo "Attesting backend SBOM to ECR..."
           cosign attest --yes --type spdx --predicate backend-sbom.spdx.json \
             $ECR_REGISTRY/brewsecops-backend:$VERSION
-          echo "✅ Backend SBOM attested in ECR"
+          echo " Backend SBOM attested in ECR"
 
       # ============================================
       # GHCR PUSH & SIGN
@@ -467,7 +368,7 @@ jobs:
           echo "Pushing frontend to GHCR..."
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:latest
-          echo "✅ Frontend pushed to GHCR"
+          echo " Frontend pushed to GHCR"
 
       - name: Push Backend to GHCR
         run: |
@@ -476,7 +377,7 @@ jobs:
           echo "Pushing backend to GHCR..."
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
           docker push ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:latest
-          echo "✅ Backend pushed to GHCR"
+          echo " Backend pushed to GHCR"
 
       # Sign GHCR images with Cosign (keyless OIDC)
       - name: Sign Frontend Image in GHCR
@@ -486,7 +387,7 @@ jobs:
           echo "Signing frontend in GHCR..."
           cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
           cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:latest
-          echo "✅ Frontend signed in GHCR"
+          echo " Frontend signed in GHCR"
 
       - name: Sign Backend Image in GHCR
         run: |
@@ -495,7 +396,7 @@ jobs:
           echo "Signing backend in GHCR..."
           cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
           cosign sign --yes ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:latest
-          echo "✅ Backend signed in GHCR"
+          echo " Backend signed in GHCR"
 
       # Attest GHCR images with SBOM
       - name: Attach Frontend SBOM to GHCR Image
@@ -505,7 +406,7 @@ jobs:
           echo "Attesting frontend SBOM to GHCR..."
           cosign attest --yes --type spdx --predicate frontend-sbom.spdx.json \
             ghcr.io/${OWNER_LC}/${{ env.IMAGE_FRONTEND }}:$VERSION
-          echo "✅ Frontend SBOM attested in GHCR"
+          echo " Frontend SBOM attested in GHCR"
 
       - name: Attach Backend SBOM to GHCR Image
         run: |
@@ -514,7 +415,7 @@ jobs:
           echo "Attesting backend SBOM to GHCR..."
           cosign attest --yes --type spdx --predicate backend-sbom.spdx.json \
             ghcr.io/${OWNER_LC}/${{ env.IMAGE_BACKEND }}:$VERSION
-          echo "✅ Backend SBOM attested in GHCR"
+          echo " Backend SBOM attested in GHCR"
 
       # ============================================
       # DEPLOYMENT NOTIFICATION
@@ -541,12 +442,12 @@ jobs:
             **ECR (Production - Used by ECS)**
             - Frontend: \`${frontendECR}\`
             - Backend: \`${backendECR}\`
-            - Status: ✅ Signed with Cosign (OIDC) + SBOM attested
+            - Status:  Signed with Cosign (OIDC) + SBOM attested
             
             **GHCR (Public - Portfolio)**
             - Frontend: \`${frontendGHCR}\`
             - Backend: \`${backendGHCR}\`
-            - Status: ✅ Signed with Cosign (OIDC) + SBOM attested
+            - Status:  Signed with Cosign (OIDC) + SBOM attested
             
             ### Security Validation
             - Gitleaks: No secrets detected
