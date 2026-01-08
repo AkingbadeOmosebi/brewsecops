@@ -204,7 +204,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.vpc -auto-approve
+          terraform apply -lock=false -target=module.vpc -auto-approve
 
   deploy-security-groups:
     name: Deploy Security Groups
@@ -242,7 +242,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.security_groups -auto-approve
+          terraform apply -lock=false -target=module.security_groups -auto-approve
 
   deploy-database:
     name: Deploy RDS Database
@@ -280,7 +280,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.rds -auto-approve
+          terraform apply -lock=false -target=module.rds -auto-approve
 
   deploy-compute:
     name: Deploy ECS & Container Infrastructure
@@ -318,12 +318,12 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.ecs_cluster -auto-approve
+          terraform apply -lock=false -target=module.ecs_cluster -auto-approve
       - name: Deploy ECR Repositories
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.ecr -auto-approve
+          terraform apply -lock=false -target=module.ecr -auto-approve
 
   deploy-networking:
     name: Deploy ALB & Networking
@@ -361,7 +361,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.alb -auto-approve
+          terraform apply -lock=false -target=module.alb -auto-approve
 
   deploy-dns-ssl:
     name: Deploy DNS & SSL/TLS
@@ -399,12 +399,12 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.acm -auto-approve
+          terraform apply -lock=false -target=module.acm -auto-approve
       - name: Deploy Route53 DNS
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.route53 -auto-approve
+          terraform apply -lock=false -target=module.route53 -auto-approve
 
   deploy-waf:
     name: Deploy WAF Protection
@@ -442,7 +442,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.waf -auto-approve
+          terraform apply -lock=false -target=module.waf -auto-approve
 
   deploy-services:
     name: Deploy ECS Services
@@ -481,7 +481,7 @@ jobs:
         run: |
           cd infra/terraform/environments/dev
           terraform init
-          terraform apply -target=module.ecs_service_frontend -target=module.ecs_service_backend -auto-approve
+          terraform apply -lock=false -target=module.ecs_service_frontend -target=module.ecs_service_backend -auto-approve
 
   deployment-notification:
     name: Deployment Notification
