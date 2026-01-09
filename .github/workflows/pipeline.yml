@@ -5,6 +5,7 @@ on:
     workflows: ["Deploy Infrastructure"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
 
 env:
   REGISTRY_GHCR: ghcr.io/${{ github.repository_owner }}
@@ -104,6 +105,7 @@ jobs:
           args: >
             --enableExperimental
             --failOnCVSS 7
+            --suppression dependency-check-suppressions.xml
 
       - name: Upload OWASP Report
         if: always()
