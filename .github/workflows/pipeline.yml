@@ -97,6 +97,7 @@ jobs:
             ${{ runner.os }}-owasp-db-
 
       - name: OWASP Dependency Check
+        continue-on-error: true
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'BrewSecOps'

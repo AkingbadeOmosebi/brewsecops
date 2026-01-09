@@ -7,8 +7,4 @@
   <suppress>
     <cve>CVE-2024-21538</cve>
   </suppress>
-  
-  <suppress>
-    <cve>GHSA-2w69-qvjg-hvjx</cve>
-  </suppress>
 </suppressions>
