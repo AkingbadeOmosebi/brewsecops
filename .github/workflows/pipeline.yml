@@ -133,7 +133,7 @@ jobs:
   # ============================================
   build-and-scan:
     name: Build & Container Security
-    needs: check-deploy-status
+    needs: [check-deploy-status, security-scan]
     if: needs.check-deploy-status.outputs.deploy_success == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25

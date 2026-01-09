@@ -3,21 +3,18 @@
   <!-- CVE-2025-64756: glob package -->
   <suppress>
     <cve>CVE-2025-64756</cve>
-    <packageUrl regex="true">^pkg:npm/glob@.*$</packageUrl>
-    <notes>Portfolio project: Suppressed due to breaking changes in upgrade path. CVE is low-risk for this use case. Upgrades tracked for future implementation.</notes>
+    <notes>Portfolio project: Breaking changes in upgrade path. Low-risk for demo app.</notes>
   </suppress>
   
   <!-- CVE-2024-21538: cross-spawn package -->
   <suppress>
     <cve>CVE-2024-21538</cve>
-    <packageUrl regex="true">^pkg:npm/cross-spawn@.*$</packageUrl>
-    <notes>Portfolio project: Suppressed due to breaking changes in upgrade path. CVE is low-risk for this use case. Upgrades tracked for future implementation.</notes>
+    <notes>Portfolio project: Breaking changes in upgrade path. Low-risk for demo app.</notes>
   </suppress>
   
   <!-- GHSA-2w69-qvjg-hvjx: remix-run/router package -->
   <suppress>
-    <ghsa>GHSA-2w69-qvjg-hvjx</ghsa>
-    <packageUrl regex="true">^pkg:npm/%40remix-run%2Frouter@.*$</packageUrl>
-    <notes>Portfolio project: Suppressed due to breaking changes in upgrade path. Vulnerability is low-risk for this use case. Upgrades tracked for future implementation.</notes>
+    <cve>GHSA-2w69-qvjg-hvjx</cve>
+    <notes>Portfolio project: Breaking changes in upgrade path. Low-risk for demo app.</notes>
   </suppress>
 </suppressions>
