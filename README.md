@@ -11,6 +11,30 @@
 
 ---
 
+## 🖼️ Live Application
+
+**Production-Ready Coffee Shop Platform with Full DevSecOps Implementation**
+
+![BrewSecOps Live Application](docs/screenshots/local-app/ssl-cert.png)
+
+*Coffee shop application running on AWS ECS Fargate with Multi-AZ architecture, WAF protection, and automated CI/CD. View live at: https://dev.brewsecops.online*
+
+**Key Features Visible Above:**
+- ✅ 23 coffee products with real-time inventory
+- ✅ Shopping cart with session management
+- ✅ System health indicator (Backend API + PostgreSQL connected)
+- ✅ Responsive design with Tailwind CSS
+- ✅ Production SSL certificate (ACM)
+
+**Behind the Scenes:**
+- 🔐 AWS WAF blocking SQL injection, XSS, and rate limiting attacks
+- 🚀 2 frontend + 2 backend containers across 2 availability zones
+- 💾 PostgreSQL 15 Multi-AZ database with automatic failover
+- 📊 CloudWatch monitoring and Container Insights
+- 🔒 Cosign-signed container images with SBOM attestation
+
+---
+
 ## 📋 Table of Contents
 
 1. [Executive Summary](#executive-summary)

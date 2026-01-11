@@ -5,6 +5,8 @@
 **Total Screenshots:** 77  
 **Documentation Date:** January 2026
 
+> **Note**: All images are embedded inline. Scroll through this document to see visual evidence of the complete infrastructure, application, and security implementation.
+
 ---
 
 ## Table of Contents
@@ -23,9 +25,10 @@
 
 This section showcases the coffee shop application running locally during development, demonstrating full-stack functionality before AWS deployment.
 
-### Application Homepage
+### Main Coffee Shop Interface
+![Coffee Shop Homepage](screenshots/local-app/Local-app.png)
 
-**Main Coffee Shop Interface** ([Local-app.png](screenshots/local-app/Local-app.png))
+**Technical Details:**
 - Running on localhost:5173 (Vite development server)
 - Header: "Aking's Coffee" with tagline "Brew Beautifully, Deploy Securely"
 - System status badge: "System Online - Backend API + PostgreSQL Connected"
@@ -34,66 +37,114 @@ This section showcases the coffee shop application running locally during develo
 - Clean, responsive UI with Tailwind CSS styling
 - DevSecOps Platform Demo label
 
-**Coffee Menu Interface** ([local-app2.png](screenshots/local-app/local-app2.png))
+---
+
+### Coffee Menu Interface
+![Coffee Menu Grid](screenshots/local-app/local-app2.png)
+
+**Features Shown:**
 - Grid layout showing multiple coffee products
 - Product cards with high-quality images
 - Pricing clearly displayed
 - Category badges (hot/cold indicators)
 - Demonstrates frontend data rendering from API
 
-**Product Details View** ([local-app3.png](screenshots/local-app/local-app3.png))
+---
+
+### Product Details View
+![Product Detail Page](screenshots/local-app/local-app3.png)
+
+**Functionality:**
 - Individual coffee product detail page
 - Product description
 - Add to cart functionality
 - Quantity selector
 - Price calculation
 
-**Shopping Cart** ([local-app4.png](screenshots/local-app/local-app4.png))
+---
+
+### Shopping Cart
+![Shopping Cart](screenshots/local-app/local-app4.png)
+
+**Cart Features:**
 - Cart items with quantities
 - Real-time price calculations
 - Remove item functionality
 - Subtotal display
 - Checkout button
 
-**Order Placement** ([local-app5.png](screenshots/local-app/local-app5.png))
+---
+
+### Order Placement
+![Order Placement Form](screenshots/local-app/local-app5.png)
+
+**Order Flow:**
 - Customer information form
 - Order summary
 - Payment interface (demo mode)
 - Order confirmation flow
 
-**My Orders Dashboard** ([local-app6.png](screenshots/local-app/local-app6.png))
+---
+
+### My Orders Dashboard
+![Orders Dashboard](screenshots/local-app/local-app6.png)
+
+**Dashboard Features:**
 - Customer order history
 - Order status tracking
 - Preparation time estimates
 - Order details expandable
 
-**Order Status Tracking** ([local-app7.png](screenshots/local-app/local-app7.png))
+---
+
+### Order Status Tracking
+![Order Status](screenshots/local-app/local-app7.png)
+
+**Status Tracking:**
 - Real-time order status updates
 - Status indicators: Placed → Preparing → Ready
 - Estimated completion time
 - Order number for reference
 
-**Database State Verification** ([live-app-database-state.png](screenshots/local-app/live-app-database-state.png))
+---
+
+### Database State Verification
+![Database Connection](screenshots/local-app/live-app-database-state.png)
+
+**Backend Integration:**
 - PostgreSQL database connection verified
 - Sample data populated
 - Tables: products, customers, orders, order_items
 - Demonstrates backend-database integration
 
-**API Endpoint Testing** ([live-app-fetch-status-from-my-orders.png](screenshots/local-app/live-app-fetch-status-from-my-orders.png))
+---
+
+### API Endpoint Testing
+![API Testing](screenshots/local-app/live-app-fetch-status-from-my-orders.png)
+
+**API Functionality:**
 - Browser DevTools showing API responses
 - GET /api/orders endpoint
 - JSON response structure
 - Status codes: 200 OK
 - Demonstrates RESTful API functionality
 
-**Additional UI Variations** ([local-app8.png](screenshots/local-app/local-app8.png))
+---
+
+### Additional UI Variations
+![UI Variations](screenshots/local-app/local-app8.png)
+
+**Design Features:**
 - Alternative page layouts
 - Responsive design across screen sizes
 - Accessibility features visible
 
-### Production Deployment
+---
 
-**SSL Certificate Validation** ([ssl-cert.png](screenshots/local-app/ssl-cert.png))
+### SSL Certificate Validation
+![SSL Certificate](screenshots/local-app/ssl-cert.png)
+
+**Production Security:**
 - Application running on dev.brewsecops.online with HTTPS
 - ACM SSL certificate viewer dialog
 - Issued by: Amazon RSA 2048 M01
@@ -108,9 +159,10 @@ This section showcases the coffee shop application running locally during develo
 
 This section documents the complete AWS infrastructure deployed via Terraform, organized by service category.
 
-### VPC & Networking
+### VPC Dashboard Overview
+![VPC Dashboard](screenshots/aws/vpc-dashboard.png)
 
-**VPC Dashboard Overview** ([vpc-dashboard.png](screenshots/aws/vpc-dashboard.png))
+**VPC Configuration:**
 - VPC name: brewsecops-vpc-dev
 - CIDR block: 10.0.0.0/16
 - Region: eu-central-1 (Frankfurt)
@@ -119,7 +171,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Default VPC: No
 - Tenancy: Default
 
-**VPC Resource Map** ([vpc-resource-map.png](screenshots/aws/vpc-resource-map.png))
+---
+
+### VPC Resource Map
+![VPC Resource Map](screenshots/aws/vpc-resource-map.png)
+
+**Network Topology:**
 - Visual topology showing all VPC resources
 - 6 subnets across 2 availability zones
 - 2 NAT Gateways (one per AZ)
@@ -127,27 +184,47 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Route tables associations visible
 - Security groups relationships
 
-**VPC Subnets Configuration** ([vpc-subnets.png](screenshots/aws/vpc-subnets.png))
+---
+
+### VPC Subnets Configuration
+![VPC Subnets](screenshots/aws/vpc-subnets.png)
+
+**Subnet Layout:**
 - Public subnets: 10.0.1.0/24 (AZ-1a), 10.0.2.0/24 (AZ-1b)
 - Private subnets: 10.0.10.0/24 (AZ-1a), 10.0.11.0/24 (AZ-1b)
 - Database subnets: 10.0.20.0/24 (AZ-1a), 10.0.21.0/24 (AZ-1b)
 - Available IPs shown for each subnet
 - Subnet associations with route tables
 
-**Route Tables** ([vpc-route-tables.png](screenshots/aws/vpc-route-tables.png))
+---
+
+### Route Tables
+![Route Tables](screenshots/aws/vpc-route-tables.png)
+
+**Routing Configuration:**
 - Public route table: Routes to Internet Gateway (0.0.0.0/0 → igw-xxxxx)
 - Private route tables: Routes to NAT Gateways (one per AZ)
 - Database route table: No internet routes (isolated)
 - Local routes: 10.0.0.0/16 (VPC internal)
 - Route propagation: Disabled
 
-**Subnet Associations** ([subnet-associations.png](screenshots/aws/subnet-associations.png))
+---
+
+### Subnet Associations
+![Subnet Associations](screenshots/aws/subnet-associations.png)
+
+**Route Table Mappings:**
 - Route table to subnet mappings
 - Explicit associations defined
 - Main route table identified
 - Subnet IDs and CIDR blocks visible
 
-**NAT Gateways** ([vpc-nat-gateways.png](screenshots/aws/vpc-nat-gateways.png))
+---
+
+### NAT Gateways
+![NAT Gateways](screenshots/aws/vpc-nat-gateways.png)
+
+**High Availability NAT:**
 - NAT Gateway 1: nat-xxxxx in eu-central-1a
 - NAT Gateway 2: nat-xxxxx in eu-central-1b
 - Status: Available (both)
@@ -155,7 +232,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Subnet placement: Public subnets
 - Provides outbound internet for private subnets
 
-**Elastic IP Addresses** ([elastic-ip.png](screenshots/aws/elastic-ip.png))
+---
+
+### Elastic IP Addresses
+![Elastic IPs](screenshots/aws/elastic-ip.png)
+
+**Static IP Configuration:**
 - 2 Elastic IPs allocated
 - Associated with: NAT Gateways
 - Allocation IDs: eipalloc-xxxxx
@@ -163,40 +245,63 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Status: Associated
 - Used for: NAT Gateway static IPs
 
-**Network ACLs** ([network-acls.png](screenshots/aws/network-acls.png))
+---
+
+### Network ACLs
+![Network ACLs](screenshots/aws/network-acls.png)
+
+**Network Access Control:**
 - Default NACL configuration
 - Inbound rules: Allow all (100 - ALL - 0.0.0.0/0 - ALLOW)
 - Outbound rules: Allow all (100 - ALL - 0.0.0.0/0 - ALLOW)
 - Associated subnets listed
 - Rule numbers and evaluation order
 
-**Security Groups Overview** ([security-groups.png](screenshots/aws/security-groups.png))
+---
+
+### Security Groups Overview
+![Security Groups](screenshots/aws/security-groups.png)
+
+**Security Group Inventory:**
 - brewsecops-alb-sg-dev: ALB security group
 - brewsecops-ecs-sg-dev: ECS tasks security group
 - brewsecops-rds-sg-dev: Database security group
 - Group IDs and descriptions
 - VPC associations
 
-**ECS Security Group Rules** ([vpc-security-inbound-rules.png](screenshots/aws/vpc-security-inbound-rules.png))
-- Inbound rules:
+---
+
+### ECS Security Group Rules
+![ECS Security Rules](screenshots/aws/vpc-security-inbound-rules.png)
+
+**Least-Privilege Access:**
+- **Inbound rules:**
   - Port 80: Source ALB security group (HTTP)
   - Port 3001: Source ALB security group (Backend API)
-- Outbound rules:
+- **Outbound rules:**
   - Port 5432: Destination RDS security group (PostgreSQL)
   - Port 443: Destination 0.0.0.0/0 (Package downloads, HTTPS)
 - Demonstrates least-privilege access control
 
-**RDS Security Group Rules** ([vpc-rds-security-groups-inbound-rules.png](screenshots/aws/vpc-rds-security-groups-inbound-rules.png))
-- Inbound rules:
+---
+
+### RDS Security Group Rules
+![RDS Security Rules](screenshots/aws/vpc-rds-security-groups-inbound-rules.png)
+
+**Database Isolation:**
+- **Inbound rules:**
   - Port 5432: Source ECS security group only
   - Protocol: TCP
-- Outbound rules: None (database doesn't initiate connections)
+- **Outbound rules:** None (database doesn't initiate connections)
 - No public internet access
 - Isolated database tier
 
-### ECS (Elastic Container Service)
+---
 
-**ECS Cluster Services** ([ecs-cluster-sevices.png](screenshots/aws/ecs-cluster-sevices.png))
+### ECS Cluster Services
+![ECS Cluster](screenshots/aws/ecs-cluster-sevices.png)
+
+**Container Orchestration:**
 - Cluster name: brewsecops-cluster-dev
 - Platform version: Fargate
 - Status: Active
@@ -208,7 +313,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Pending: 0
 - Last updated: January 5, 2026, 23:11 UTC
 
-**ECS Task Definition** ([ecs-task-definition.png](screenshots/aws/ecs-task-definition.png))
+---
+
+### ECS Task Definition
+![Task Definition](screenshots/aws/ecs-task-definition.png)
+
+**Task Configuration:**
 - Task definition family: brewsecops-backend-dev
 - Revision: Latest
 - Launch type: Fargate
@@ -219,7 +329,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Memory: 1024 MB
 - Container definitions visible
 
-**ECS Frontend Container Configuration** ([ecs-task-definition-frontend-containers.png](screenshots/aws/ecs-task-definition-frontend-containers.png))
+---
+
+### ECS Frontend Container Configuration
+![Frontend Container](screenshots/aws/ecs-task-definition-frontend-containers.png)
+
+**Container Details:**
 - Container name: frontend
 - Image: ECR repository URI
 - Port mappings: 80 (containerPort), 80 (hostPort)
@@ -230,9 +345,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Health check: CMD-SHELL curl -f http://localhost/ || exit 1
 - Log configuration: CloudWatch Logs
 
-### Load Balancer
+---
 
-**Load Balancer Overview** ([load-balancer-target-groups.png](screenshots/aws/load-balancer-target-groups.png))
+### Load Balancer Overview
+![Load Balancer](screenshots/aws/load-balancer-target-groups.png)
+
+**ALB Configuration:**
 - Load balancer name: brewsecops-alb-dev
 - DNS name: brewsecops-alb-dev-1147974832.eu-central-1.elb.amazonaws.com
 - State: active
@@ -241,7 +359,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - IP address type: ipv4
 - Availability Zones: eu-central-1a, eu-central-1b
 
-**ALB Listeners and Rules** ([load-balancer-AZ-listeners-and-rules.png](screenshots/aws/load-balancer-AZ-listeners-and-rules.png))
+---
+
+### ALB Listeners and Rules
+![ALB Listeners](screenshots/aws/load-balancer-AZ-listeners-and-rules.png)
+
+**Path-Based Routing:**
 - Listener: HTTP:80
 - Default action: Forward to brewsecops-frontend-tg-dev
 - Rules:
@@ -249,7 +372,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
   - Default: Forward to brewsecops-frontend-tg-dev
 - Path-based routing configured
 
-**Backend Target Group Health** ([load-balancer-target-groups-backend-health-status.png](screenshots/aws/load-balancer-target-groups-backend-health-status.png))
+---
+
+### Backend Target Group Health
+![Backend Health](screenshots/aws/load-balancer-target-groups-backend-health-status.png)
+
+**Backend Service Health:**
 - Target group: brewsecops-backend-tg-dev
 - Port: 3001
 - Protocol: HTTP
@@ -265,7 +393,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Timeout: 10 seconds
 - Success codes: 200
 
-**Frontend Target Group Health** ([load-balancer-target-groups-frontend-health-status.png](screenshots/aws/load-balancer-target-groups-frontend-health-status.png))
+---
+
+### Frontend Target Group Health
+![Frontend Health](screenshots/aws/load-balancer-target-groups-frontend-health-status.png)
+
+**Frontend Service Health:**
 - Target group: brewsecops-frontend-tg-dev
 - Port: 80
 - Protocol: HTTP
@@ -277,9 +410,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Health check path: /
 - All health checks passing
 
-### ECR (Elastic Container Registry)
+---
 
-**ECR Frontend Repository** ([ecr-registry-frontend.png](screenshots/aws/ecr-registry-frontend.png))
+### ECR Frontend Repository
+![ECR Registry](screenshots/aws/ecr-registry-frontend.png)
+
+**Container Registry:**
 - Repository name: brewsecops-frontend-dev
 - Repository URI: 194722436853.dkr.ecr.eu-central-1.amazonaws.com/brewsecops-frontend-dev
 - Image tag: latest
@@ -289,9 +425,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Scan on push: Enabled
 - Scan findings: Vulnerability count displayed
 
-### Route53 & ACM
+---
 
-**Route53 Hosted Zones** ([route53-hosted-zones.png](screenshots/aws/route53-hosted-zones.png))
+### Route53 Hosted Zones
+![Route53](screenshots/aws/route53-hosted-zones.png)
+
+**DNS Management:**
 - Hosted zone: brewsecops.online
 - Type: Public hosted zone
 - Record count: 5+ records
@@ -304,7 +443,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
   - A record: dev.brewsecops.online (Alias to ALB)
   - CNAME: ACM validation records
 
-**ACM Certificate List** ([aws-certificate-manager-lists.png](screenshots/aws/aws-certificate-manager-lists.png))
+---
+
+### ACM Certificate List
+![ACM Certificates](screenshots/aws/aws-certificate-manager-lists.png)
+
+**SSL Certificate Management:**
 - Certificate domain: dev.brewsecops.online
 - Status: Issued
 - Type: Amazon issued
@@ -313,7 +457,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Associated resources: 1 (ALB)
 - Renewal: Managed by AWS
 
-**ACM Certificate Status** ([aws-ACM-tatus.png](screenshots/aws/aws-ACM-tatus.png))
+---
+
+### ACM Certificate Status
+![Certificate Status](screenshots/aws/aws-ACM-tatus.png)
+
+**Certificate Details:**
 - Domain name: dev.brewsecops.online
 - ARN: arn:aws:acm:eu-central-1:194722436853:certificate/503eb598-fec1-4ae7-ae8d-71e8031244d8
 - Status: Issued
@@ -322,9 +471,12 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 - Renewal eligibility: Eligible
 - Renewal status: Pending automatic renewal
 
-### CloudWatch
+---
 
-**CloudWatch Logs** ([cloudwatch-logs.png](screenshots/aws/cloudwatch-logs.png))
+### CloudWatch Logs
+![CloudWatch Logs](screenshots/aws/cloudwatch-logs.png)
+
+**Centralized Logging:**
 - Log groups:
   - /ecs/brewsecops-frontend-dev (7-day retention)
   - /ecs/brewsecops-backend-dev (7-day retention)
@@ -342,9 +494,10 @@ This section documents the complete AWS infrastructure deployed via Terraform, o
 
 This section documents the complete DevSecOps pipeline with security scanning, build automation, and deployment workflows.
 
-### Main Pipeline
+### DevSecOps Pipeline Overview
+![Pipeline Overview](screenshots/github/app-devsecops-pipeline.png)
 
-**DevSecOps Pipeline Overview** ([app-devsecops-pipeline.png](screenshots/github/app-devsecops-pipeline.png))
+**Pipeline Execution:**
 - Workflow: DevSecOps Pipeline
 - Run #15: fix: switched to lowercases for ghcr
 - Status: Success
@@ -357,7 +510,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - Security scanning summary: "No leaks detected" ✓
 - Deployment protection rules: Production approval required
 
-**Security Scanning Stage** ([security-scanning.png](screenshots/github/security-scanning.png))
+---
+
+### Security Scanning Stage
+![Security Scanning](screenshots/github/security-scanning.png)
+
+**Automated Security Checks:**
 - Job duration: 3m 19s
 - Tools executed:
   - Gitleaks: Secret detection (Passed)
@@ -369,7 +527,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - All security checks: Green checkmarks
 - No blocking vulnerabilities detected
 
-**Build & Container Security Stage** ([build-&-container-security.png](screenshots/github/build-&-container-security.png))
+---
+
+### Build & Container Security Stage
+![Build Stage](screenshots/github/build-&-container-security.png)
+
+**Build Process:**
 - Job duration: 1m 56s
 - Steps:
   - Checkout code
@@ -384,7 +547,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
   - Backend: 180MB (multi-stage build)
 - Scan results: Logged and uploaded
 
-**Sign & Push to Registry Stage** ([sign-and-push-to-registry.png](screenshots/github/sign-and-push-to-registry.png))
+---
+
+### Sign & Push to Registry Stage
+![Sign and Push](screenshots/github/sign-and-push-to-registry.png)
+
+**Image Publishing:**
 - Job duration: 36s
 - Steps:
   - Install Cosign
@@ -400,7 +568,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
   - Portfolio: GitHub Container Registry
 - Images signed successfully with OIDC certificates
 
-**Pipeline Manual Approval Gate** ([pipeline-human-gate.png](screenshots/github/pipeline-human-gate.png))
+---
+
+### Pipeline Manual Approval Gate
+![Approval Gate](screenshots/github/pipeline-human-gate.png)
+
+**Production Protection:**
 - Environment: Production
 - Required reviewers: 1
 - Status: Waiting for review
@@ -408,16 +581,24 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - Approve/Reject buttons
 - Demonstrates controlled production deployment
 
-**Push to Registry Approval** ([push-to-registry-human-gate.png](screenshots/github/push-to-registry-human-gate.png))
+---
+
+### Push to Registry Approval
+![Registry Approval](screenshots/github/push-to-registry-human-gate.png)
+
+**Approval Workflow:**
 - Approval requested for production push
 - Reviewer: AkingbadeOmosebi
 - Status: Approved 6 hours ago
 - Comment: "approve"
 - Timestamp visible
 
-### Infrastructure Workflows
+---
 
-**Deploy Infrastructure Pipeline** ([deploy-infrastructure-summary.png](screenshots/github/deploy-infrastructure-summary.png))
+### Deploy Infrastructure Pipeline
+![Infrastructure Deploy](screenshots/github/deploy-infrastructure-summary.png)
+
+**Infrastructure Automation:**
 - Workflow: Deploy Infrastructure
 - Triggered by: Manual workflow dispatch
 - Status: Success
@@ -426,7 +607,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
   - terraform-apply: Deploy approved changes
 - Duration: 8-12 minutes (infrastructure deployment)
 
-**Deploy Infrastructure Status** ([deploy-infrastructure-status.png](screenshots/github/deploy-infrastructure-status.png))
+---
+
+### Deploy Infrastructure Status
+![Deploy Status](screenshots/github/deploy-infrastructure-status.png)
+
+**Deployment Progress:**
 - Terraform init: Successful
 - Terraform plan: 76 resources to add
 - Terraform apply: Changes applied
@@ -438,7 +624,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
   - Route53 records
   - Security groups
 
-**Check Infrastructure Deployment Status** ([check-infrastructure-deployment-status.png](screenshots/github/check-infrastructure-deployment-status.png))
+---
+
+### Check Infrastructure Deployment Status
+![Health Check](screenshots/github/check-infrastructure-deployment-status.png)
+
+**Post-Deployment Verification:**
 - Job: Verify deployment health
 - Checks:
   - ECS services running: ✓
@@ -448,14 +639,24 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - Overall status: Healthy
 - Duration: 1m 23s
 
-**Deploy Infrastructure Approval Gate** ([deploy-infra-human-gate.png](screenshots/github/deploy-infra-human-gate.png))
+---
+
+### Deploy Infrastructure Approval Gate
+![Infrastructure Approval](screenshots/github/deploy-infra-human-gate.png)
+
+**Change Control:**
 - Environment: Production infrastructure
 - Terraform plan output shown
 - Review required before apply
 - Approve/Reject workflow
 - Prevents accidental infrastructure changes
 
-**Destroy Infrastructure Pipeline** ([destroy-infrastructure-pipeline.png](screenshots/github/destroy-infrastructure-pipeline.png))
+---
+
+### Destroy Infrastructure Pipeline
+![Destroy Pipeline](screenshots/github/destroy-infrastructure-pipeline.png)
+
+**Infrastructure Teardown:**
 - Workflow: Destroy Infrastructure
 - Triggered by: Manual dispatch only
 - Status: Success
@@ -464,16 +665,34 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - Safety: Multiple confirmation prompts
 - Duration: 6-8 minutes
 
-**Destroy Infrastructure Approval Gates** ([destroy-infrastructure-human-gate.png](screenshots/github/destroy-infrastructure-human-gate.png), [destroy-infra-human-gate.png](screenshots/github/destroy-infra-human-gate.png))
+---
+
+### Destroy Infrastructure Approval Gates
+![Destroy Approval 1](screenshots/github/destroy-infrastructure-human-gate.png)
+
+**Safety Controls:**
 - Double confirmation required
 - Warning: "This action cannot be undone"
 - Reviewer approval mandatory
 - Comment requirement explaining reason
 - Protects against accidental deletion
 
-### GitHub Container Registry
+---
 
-**GHCR Packages Overview** ([ghcr-packages.png](screenshots/github/ghcr-packages.png))
+![Destroy Approval 2](screenshots/github/destroy-infra-human-gate.png)
+
+**Additional Safety Gate:**
+- Second approval checkpoint
+- Multiple reviewer confirmation
+- Audit trail creation
+- Production data protection
+
+---
+
+### GHCR Packages Overview
+![GHCR Packages](screenshots/github/ghcr-packages.png)
+
+**Public Registry:**
 - Packages:
   - ghcr.io/akingbadeomosebi/brewsecops-frontend
   - ghcr.io/akingbadeomosebi/brewsecops-backend
@@ -483,7 +702,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - Last published: Timestamp
 - Signed: Cosign verification available
 
-**GHCR Frontend Registry** ([ghcr-frontend-registry.png](screenshots/github/ghcr-frontend-registry.png))
+---
+
+### GHCR Frontend Registry
+![Frontend Registry](screenshots/github/ghcr-frontend-registry.png)
+
+**Container Details:**
 - Package: brewsecops-frontend
 - Tag: latest
 - Digest: sha256:xxxxx
@@ -494,9 +718,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - Signed with: Cosign keyless signature
 - SBOM attached: SPDX format
 
-### Security Reporting
+---
 
-**GitHub Security Report** ([github-security-report.png](screenshots/github/github-security-report.png))
+### GitHub Security Report
+![Security Report](screenshots/github/github-security-report.png)
+
+**Security Dashboard:**
 - Code scanning alerts: 3 open
 - Dependabot alerts: Active
 - Secret scanning: Enabled
@@ -507,7 +734,12 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 - Remediation guidance provided
 - Integration with GitHub Security tab
 
-**DevSec Dashboard** ([devsec.png](screenshots/github/devsec.png))
+---
+
+### DevSec Dashboard
+![DevSec Overview](screenshots/github/devsec.png)
+
+**Security Posture:**
 - Overall security posture
 - Scan history timeline
 - Tool integration status
@@ -525,9 +757,10 @@ This section documents the complete DevSecOps pipeline with security scanning, b
 
 This section documents real-world WAF testing with SQL injection, XSS, rate limiting, and geographic restrictions.
 
-### WAF Configuration
+### WAF Rules Overview
+![WAF Rules](screenshots/waf/waf-rules-6-of-6.png)
 
-**WAF Rules Overview** ([waf-rules-6-of-6.png](screenshots/waf/waf-rules-6-of-6.png))
+**Web Application Firewall:**
 - Web ACL: brewsecops-waf-dev
 - Region: eu-central-1
 - Associated resource: ALB
@@ -538,7 +771,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Metrics: ALLOW (green), BLOCK (red), TOTAL (blue)
 - Peak traffic: ~200 requests
 
-**WAF Protection Packs** ([waf-protection-pack.png](screenshots/waf/waf-protection-pack.png))
+---
+
+### WAF Protection Packs
+![Protection Packs](screenshots/waf/waf-protection-pack.png)
+
+**Managed Rule Sets:**
 - AWS Managed Rules:
   1. Core Rule Set (CRS)
   2. Known Bad Inputs
@@ -550,7 +788,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Action: Block (not just count)
 - Capacity units used: 1500 WCU
 
-**WAF & Shield Integration** ([waf-&-sheild-report.png](screenshots/waf/waf-&-sheild-report.png))
+---
+
+### WAF & Shield Integration
+![WAF Shield](screenshots/waf/waf-&-sheild-report.png)
+
+**DDoS Protection:**
 - AWS WAF: Active
 - AWS Shield Standard: Enabled (automatic DDoS protection)
 - Protected resources: 1 (ALB)
@@ -558,9 +801,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Recent attacks: None
 - Historical data: 30 days
 
-### Security Testing Results
+---
 
-**SQL Injection Attack Tests** ([waf-tests-sql-injection-tests.png](screenshots/waf/waf-tests-sql-injection-tests.png))
+### SQL Injection Attack Tests
+![SQL Injection](screenshots/waf/waf-tests-sql-injection-tests.png)
+
+**Attack Prevention:**
 - Test payloads executed:
   - `' OR '1'='1`
   - `'; DROP TABLE users; --`
@@ -572,7 +818,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Source IP: Logged
 - Timestamp: Recorded
 
-**XSS Attack Tests** ([waf-tests-script-tag-event-handler-javascript-protocol-data-exfiltration-form-action-hijacking.png](screenshots/waf/waf-tests-script-tag-event-handler-javascript-protocol-data-exfiltration-form-action-hijacking.png))
+---
+
+### XSS Attack Tests
+![XSS Tests](screenshots/waf/waf-tests-script-tag-event-handler-javascript-protocol-data-exfiltration-form-action-hijacking.png)
+
+**Cross-Site Scripting Protection:**
 - Test payloads:
   - `<script>alert('XSS')</script>`
   - `<img src=x onerror=alert('XSS')>`
@@ -583,14 +834,24 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Action: Block
 - Protection: Prevents data exfiltration and session hijacking
 
-**Known Bad Inputs Test** ([waf-known-bad-inputs-attack.png](screenshots/waf/waf-known-bad-inputs-attack.png))
+---
+
+### Known Bad Inputs Test
+![Bad Inputs](screenshots/waf/waf-known-bad-inputs-attack.png)
+
+**Path Traversal Prevention:**
 - Test: Path traversal attempts
 - Payloads: `../../../../etc/passwd`, `..\..\..\..\windows\system32`
 - Result: Blocked
 - Rule: Known Bad Inputs rule set
 - Protection: File system access prevention
 
-**Rate Limiting Tests** ([waf-rate-limit-blocks.png](screenshots/waf/waf-rate-limit-blocks.png))
+---
+
+### Rate Limiting Tests
+![Rate Limiting](screenshots/waf/waf-rate-limit-blocks.png)
+
+**DDoS Mitigation:**
 - Test: 2500 requests from single IP in 5 minutes
 - Threshold: 2000 requests per 5 minutes
 - Result: 500 requests blocked after threshold exceeded
@@ -598,7 +859,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Cooldown: 5 minutes before allowing requests again
 - Protection: Prevents brute force and DDoS
 
-**Geographic Region Restrictions** ([waf-geographic-region-restriction.png](screenshots/waf/waf-geographic-region-restriction.png))
+---
+
+### Geographic Region Restrictions
+![Geo Restrictions](screenshots/waf/waf-geographic-region-restriction.png)
+
+**Location-Based Access Control:**
 - Rule: Block traffic from specific countries
 - Blocked regions: List shown (demo purposes)
 - Allowed regions: EU, US, Canada
@@ -606,7 +872,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Action: Block with custom response
 - Use case: GDPR compliance, threat reduction
 
-**Blocked Countries Dashboard** ([waf-blocked-countries.png](screenshots/waf/waf-blocked-countries.png))
+---
+
+### Blocked Countries Dashboard
+![Blocked Countries](screenshots/waf/waf-blocked-countries.png)
+
+**Geographic Blocking Stats:**
 - Countries blocked: Count displayed
 - Requests blocked by country
 - Top blocked countries:
@@ -616,7 +887,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Heatmap visualization
 - Time range: Last 7 days
 
-**Bot Control Testing** ([waf-bot-control-test.png](screenshots/waf/waf-bot-control-test.png))
+---
+
+### Bot Control Testing
+![Bot Control](screenshots/waf/waf-bot-control-test.png)
+
+**Automated Threat Detection:**
 - Automated bot detection
 - Challenge tests:
   - Verified bots: Allowed (Googlebot, Bingbot)
@@ -626,9 +902,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Legitimate bots: Allowed
 - Protection: Scraping prevention
 
-### WAF Logging and Monitoring
+---
 
-**WAF Logs and Sampled Requests** ([waf-logs-and-sampled-requests.png](screenshots/waf/waf-logs-and-sampled-requests.png))
+### WAF Logs and Sampled Requests
+![WAF Logs](screenshots/waf/waf-logs-and-sampled-requests.png)
+
+**Request Logging:**
 - CloudWatch log group: aws-waf-logs-brewsecops-dev
 - Retention: 30 days
 - Sample request log entry:
@@ -642,7 +921,12 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 - Searchable and filterable
 - Export to S3 for long-term storage
 
-**WAF Blocked Requests Report** ([waf-tests-get-all-blocked-requests.png](screenshots/waf/waf-tests-get-all-blocked-requests.png))
+---
+
+### WAF Blocked Requests Report
+![Blocked Requests](screenshots/waf/waf-tests-get-all-blocked-requests.png)
+
+**Security Analytics:**
 - Query: All blocked requests in last 24 hours
 - Results: 156 requests blocked
 - Top blocked rules:
@@ -660,9 +944,10 @@ This section documents real-world WAF testing with SQL injection, XSS, rate limi
 
 This section documents cost estimation and optimization using Infracost for Terraform infrastructure.
 
-### Cost Estimates
+### Monthly Cost Breakdown
+![Cost Estimates](screenshots/infracost/infracost-cost-estimates.png)
 
-**Monthly Cost Breakdown** ([infracost-cost-estimates.png](screenshots/infracost/infracost-cost-estimates.png))
+**Infrastructure Costs:**
 - Total monthly cost: $226
 - Baseline cost: $222
 - Usage cost: $4
@@ -679,7 +964,12 @@ This section documents cost estimation and optimization using Infracost for Terr
   - CloudWatch log groups: $0 (free tier)
 - Infrastructure: infra-terraform-bootstrap: $0
 
-**Infracost PR Comment** ([infracost-pr-request.png](screenshots/infracost/infracost-pr-request.png))
+---
+
+### Infracost PR Comment
+![PR Comment](screenshots/infracost/infracost-pr-request.png)
+
+**Automated Cost Reviews:**
 - Automatically posted on pull requests
 - Shows cost impact of infrastructure changes
 - Format:
@@ -690,7 +980,12 @@ This section documents cost estimation and optimization using Infracost for Terr
 - Helps reviewers understand financial impact
 - Prevents surprise cost increases
 
-**Infracost Pipeline Summary** ([infracost-pipeline-summary.png](screenshots/infracost/infracost-pipeline-summary.png))
+---
+
+### Infracost Pipeline Summary
+![Pipeline Summary](screenshots/infracost/infracost-pipeline-summary.png)
+
+**CI/CD Integration:**
 - Integration with CI/CD pipeline
 - Cost checks passed: ✓
 - Warnings: None
@@ -700,27 +995,39 @@ This section documents cost estimation and optimization using Infracost for Terr
 - Duration: 12 seconds
 - Exit code: 0
 
-### Cost Optimization
+---
 
-**Savings Suggestions** ([infracost-savings-suggestions.png](screenshots/infracost/infracost-savings-suggestions.png))
-- Recommendations:
-  1. Use Fargate Spot: Save $58/month (70% discount on compute)
-  2. Single NAT Gateway: Save $38/month (reduce from 2 to 1)
-  3. RDS Single-AZ: Save $18/month (remove standby)
-  4. ALB deletion protection: Disable for dev
-  5. CloudWatch log retention: Reduce from 30 to 7 days
+### Savings Suggestions
+![Savings](screenshots/infracost/infracost-savings-suggestions.png)
+
+**Cost Optimization Recommendations:**
+1. Use Fargate Spot: Save $58/month (70% discount on compute)
+2. Single NAT Gateway: Save $38/month (reduce from 2 to 1)
+3. RDS Single-AZ: Save $18/month (remove standby)
+4. ALB deletion protection: Disable for dev
+5. CloudWatch log retention: Reduce from 30 to 7 days
 - Total potential savings: $114/month (50% reduction)
 - Trade-offs clearly explained
 - Environment-specific recommendations
 
-**Additional Savings Suggestions** ([infracost-suggestions.png](screenshots/infracost/infracost-suggestions.png))
+---
+
+### Additional Savings Suggestions
+![More Savings](screenshots/infracost/infracost-suggestions.png)
+
+**Further Optimization:**
 - RDS storage optimization: Use gp2 instead of gp3 (marginal savings)
 - ECS task scheduling: Scale down to 0 during off-hours
 - ALB: Use fixed-response rules to reduce data processing
 - ECR: Implement aggressive lifecycle policies
 - S3: Enable intelligent tiering for Terraform state
 
-**Infracost Issue Explorer** ([infracost-issue-explorer.png](screenshots/infracost/infracost-issue-explorer.png))
+---
+
+### Infracost Issue Explorer
+![Issue Explorer](screenshots/infracost/infracost-issue-explorer.png)
+
+**Cost Trend Analysis:**
 - Dashboard showing cost trends over time
 - Cost increases highlighted
 - Root cause analysis:
@@ -730,7 +1037,12 @@ This section documents cost estimation and optimization using Infracost for Terr
 - Historical data: 30 days
 - Filters: By service, by tag, by environment
 
-**Failing Policies** ([infracost-failing-policies.png](screenshots/infracost/infracost-failing-policies.png))
+---
+
+### Failing Policies
+![Policy Failures](screenshots/infracost/infracost-failing-policies.png)
+
+**Cost Governance:**
 - Policy: Monthly cost must be under $200
 - Status: Failed (current: $226)
 - Remediation: Apply 2+ savings suggestions
@@ -744,9 +1056,10 @@ This section documents cost estimation and optimization using Infracost for Terr
 
 This section documents security analysis from SonarCloud and Snyk.
 
-### SonarCloud
+### SonarCloud Security Hotspots
+![Security Hotspots](screenshots/sonarcloud/sonarcloud-security-hotspot.png)
 
-**SonarCloud Security Hotspots** ([sonarcloud-security-hotspot.png](screenshots/sonarcloud/sonarcloud-security-hotspot.png))
+**Code Security Review:**
 - Project: brewsecops
 - Security hotspots reviewed: 2/2
 - Hotspot 1: Cryptography - Using weak hashing algorithm
@@ -760,7 +1073,12 @@ This section documents security analysis from SonarCloud and Snyk.
   - Status: Reviewed - Safe (example config only, real creds in env)
   - Priority: Low
 
-**SonarCloud Dashboard** ([sonarcloud2.png](screenshots/sonarcloud/sonarcloud2.png))
+---
+
+### SonarCloud Dashboard
+![SonarCloud Dashboard](screenshots/sonarcloud/sonarcloud2.png)
+
+**Quality Gate Results:**
 - Quality gate: Passed
 - Bugs: 0
 - Vulnerabilities: 0
@@ -774,9 +1092,12 @@ This section documents security analysis from SonarCloud and Snyk.
 - Security rating: A
 - Technical debt: 2h 30m
 
-### Snyk
+---
 
-**Snyk Code Analysis** ([snyk-code-analysis.png](screenshots/snyk/snyk-code-analysis.png))
+### Snyk Code Analysis
+![Snyk Analysis](screenshots/snyk/snyk-code-analysis.png)
+
+**Security Vulnerability Detection:**
 - Project: brewsecops
 - Scanned files: 342
 - Issues found: 12
@@ -792,7 +1113,12 @@ This section documents security analysis from SonarCloud and Snyk.
   - Fix: Use parameterized queries
   - Status: Under review
 
-**Snyk Overview** ([snyk-overview1.png](screenshots/snyk/snyk-overview1.png))
+---
+
+### Snyk Overview
+![Snyk Overview](screenshots/snyk/snyk-overview1.png)
+
+**Dependency Security:**
 - Dependencies tested: 342
 - License issues: 0
 - Vulnerabilities: 12 total
@@ -809,9 +1135,10 @@ This section documents security analysis from SonarCloud and Snyk.
 
 This section documents image signing with Cosign and domain configuration.
 
-### Cosign Image Signing
+### Cosign Frontend Verification
+![Cosign Frontend](screenshots/cosign%20%26%20namescheap-dns/cosign-frontend.png)
 
-**Cosign Frontend Verification** ([cosign-frontend.png](screenshots/cosign%20%26%20namescheap-dns/cosign-frontend.png))
+**Supply Chain Security:**
 - Command: `cosign verify ghcr.io/akingbadeomosebi/brewsecops-frontend:latest`
 - Verification output:
   - Signature verified: ✓
@@ -824,7 +1151,12 @@ This section documents image signing with Cosign and domain configuration.
 - Signed using GitHub Actions OIDC token
 - Supply chain integrity verified
 
-**Cosign Backend Verification** ([cosign-backend.png](screenshots/cosign%20%26%20namescheap-dns/cosign-backend.png))
+---
+
+### Cosign Backend Verification
+![Cosign Backend](screenshots/cosign%20%26%20namescheap-dns/cosign-backend.png)
+
+**Backend Image Verification:**
 - Command: `cosign verify ghcr.io/akingbadeomosebi/brewsecops-backend:latest`
 - Verification output: Same structure as frontend
 - Both images signed in same workflow run
@@ -835,9 +1167,12 @@ This section documents image signing with Cosign and domain configuration.
   - Licenses: Catalogued
   - Vulnerabilities: Mapped to CVEs
 
-### DNS Configuration
+---
 
-**Namecheap DNS Settings** ([namescheap-dns.png](screenshots/cosign%20%26%20namescheap-dns/namescheap-dns.png))
+### Namecheap DNS Settings
+![Namecheap DNS](screenshots/cosign%20%26%20namescheap-dns/namescheap-dns.png)
+
+**Domain Configuration:**
 - Domain: brewsecops.online
 - Registrar: Namecheap
 - Nameservers: Custom nameservers
@@ -871,154 +1206,29 @@ This section documents image signing with Cosign and domain configuration.
 
 ---
 
-## File Organization Structure
-
-```
-screenshots/
-├── local-app/
-│   ├── Local-app.png
-│   ├── local-app2.png
-│   ├── local-app3.png
-│   ├── local-app4.png
-│   ├── local-app5.png
-│   ├── local-app6.png
-│   ├── local-app7.png
-│   ├── local-app8.png
-│   ├── live-app-database-state.png
-│   ├── live-app-fetch-status-from-my-orders.png
-│   └── ssl-cert.png
-│
-├── aws/
-│   ├── vpc-dashboard.png
-│   ├── vpc-resource-map.png
-│   ├── vpc-subnets.png
-│   ├── vpc-route-tables.png
-│   ├── subnet-associations.png
-│   ├── vpc-nat-gateways.png
-│   ├── elastic-ip.png
-│   ├── network-acls.png
-│   ├── security-groups.png
-│   ├── vpc-security-inbound-rules.png
-│   ├── vpc-rds-security-groups-inbound-rules.png
-│   ├── ecs-cluster-sevices.png
-│   ├── ecs-task-definition.png
-│   ├── ecs-task-definition-frontend-containers.png
-│   ├── load-balancer-target-groups.png
-│   ├── load-balancer-AZ-listeners-and-rules.png
-│   ├── load-balancer-target-groups-backend-health-status.png
-│   ├── load-balancer-target-groups-frontend-health-status.png
-│   ├── ecr-registry-frontend.png
-│   ├── route53-hosted-zones.png
-│   ├── aws-certificate-manager-lists.png
-│   ├── aws-ACM-tatus.png
-│   └── cloudwatch-logs.png
-│
-├── github/
-│   ├── app-devsecops-pipeline.png
-│   ├── security-scanning.png
-│   ├── build-&-container-security.png
-│   ├── sign-and-push-to-registry.png
-│   ├── pipeline-human-gate.png
-│   ├── push-to-registry-human-gate.png
-│   ├── deploy-infrastructure-summary.png
-│   ├── deploy-infrastructure-status.png
-│   ├── check-infrastructure-deployment-status.png
-│   ├── deploy-infra-human-gate.png
-│   ├── destroy-infrastructure-pipeline.png
-│   ├── destroy-infrastructure-human-gate.png
-│   ├── destroy-infra-human-gate.png
-│   ├── ghcr-packages.png
-│   ├── ghcr-frontend-registry.png
-│   ├── github-security-report.png
-│   └── devsec.png
-│
-├── waf/
-│   ├── waf-rules-6-of-6.png
-│   ├── waf-protection-pack.png
-│   ├── waf-&-sheild-report.png
-│   ├── waf-tests-sql-injection-tests.png
-│   ├── waf-tests-script-tag-event-handler-javascript-protocol-data-exfiltration-form-action-hijacking.png
-│   ├── waf-known-bad-inputs-attack.png
-│   ├── waf-rate-limit-blocks.png
-│   ├── waf-geographic-region-restriction.png
-│   ├── waf-blocked-countries.png
-│   ├── waf-bot-control-test.png
-│   ├── waf-logs-and-sampled-requests.png
-│   └── waf-tests-get-all-blocked-requests.png
-│
-├── infracost/
-│   ├── infracost-cost-estimates.png
-│   ├── infracost-pr-request.png
-│   ├── infracost-pipeline-summary.png
-│   ├── infracost-savings-suggestions.png
-│   ├── infracost-suggestions.png
-│   ├── infracost-issue-explorer.png
-│   └── infracost-failing-policies.png
-│
-├── sonarcloud/
-│   ├── sonarcloud-security-hotspot.png
-│   └── sonarcloud2.png
-│
-├── snyk/
-│   ├── snyk-code-analysis.png
-│   └── snyk-overview1.png
-│
-└── cosign & namescheap-dns/
-    ├── cosign-frontend.png
-    ├── cosign-backend.png
-    └── namescheap-dns.png
-```
-
----
-
-## How to Use This Documentation
+## Usage Guidelines
 
 ### For Portfolio Presentations
 
-**Hiring Manager Quick Review (10 minutes):**
-1. Show local app running ([Local-app.png](screenshots/local-app/Local-app.png))
-2. Demonstrate AWS infrastructure ([ecs-cluster-sevices.png](screenshots/aws/ecs-cluster-sevices.png))
-3. Prove automation ([app-devsecops-pipeline.png](screenshots/github/app-devsecops-pipeline.png))
-4. Show security testing ([waf-tests-sql-injection-tests.png](screenshots/waf/waf-tests-sql-injection-tests.png))
-5. Display cost awareness ([infracost-cost-estimates.png](screenshots/infracost/infracost-cost-estimates.png))
+**Hiring Manager Quick Review (15 minutes):**
+1. Scroll through Local Application section - see working app
+2. View AWS Infrastructure - prove deployment capability
+3. Check CI/CD Pipelines - demonstrate automation
+4. Review WAF Testing - show security implementation
+5. Examine Infracost - display cost awareness
 
 **Technical Interview (30 minutes):**
-1. Walk through complete VPC architecture (all VPC screenshots)
-2. Explain ECS deployment strategy (all ECS screenshots)
-3. Demonstrate CI/CD pipeline stages (all GitHub screenshots)
-4. Show real WAF attack prevention (all WAF testing screenshots)
-5. Discuss cost optimization strategies (all Infracost screenshots)
+1. Walk through complete infrastructure (all AWS screenshots)
+2. Explain pipeline stages (all GitHub screenshots)
+3. Demonstrate real security testing (all WAF screenshots)
+4. Discuss cost optimization (all Infracost screenshots)
 
 **Deep Technical Dive (60 minutes):**
-- Present all 77 screenshots systematically
-- Explain each design decision
+- Review all 77 screenshots systematically
+- Explain architectural decisions
 - Discuss challenges and solutions
-- Show monitoring and logging setup
+- Show monitoring and logging
 - Review security implementations
-
-### For Documentation
-
-**README.md References:**
-```markdown
-## Architecture
-See complete infrastructure: [AWS Infrastructure](docs/screenshots.md#aws-infrastructure)
-
-## Security
-View WAF testing results: [Security Testing](docs/screenshots.md#aws-waf-security-testing)
-
-## Cost
-Review cost breakdown: [Infracost Analysis](docs/screenshots.md#infracost-analysis)
-```
-
-**Architecture Documentation:**
-- Use VPC diagrams for network explanation
-- Reference ECS screenshots for deployment architecture
-- Link ALB images for traffic routing
-
-**Security Documentation:**
-- Include WAF testing screenshots as proof of protection
-- Show SonarCloud/Snyk results for code quality
-- Reference Cosign verification for supply chain security
 
 ---
 
@@ -1038,18 +1248,11 @@ Review cost breakdown: [Infracost Analysis](docs/screenshots.md#infracost-analys
 - Timestamps: Visible where relevant
 - No sensitive data: Passwords, API keys hidden
 
-**Privacy & Security:**
-- AWS Account ID visible: Acceptable (public portfolio)
-- Domain names visible: Acceptable (portfolio demonstration)
-- Passwords: Never visible
-- API keys: Never visible
-- Database connection strings: Sanitized
-
 ---
 
 **Document Version:** 2.0  
-**Last Updated:** January 9, 2026  
+**Last Updated:** January 11, 2026  
 **Author:** Akingbade Omosebi  
 **Contact:** Berlin, Germany | Cloud Platform Engineer
 
-This documentation provides comprehensive visual evidence of a production-grade DevSecOps implementation for portfolio demonstration and technical interviews in the German tech market.
+*All images embedded inline for easy viewing. Scroll through this document to see complete visual evidence of the BrewSecOps platform.*
