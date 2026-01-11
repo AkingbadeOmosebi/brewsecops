@@ -113,7 +113,7 @@ This portfolio project was designed to demonstrate senior-level DevOps/Platform 
 
 **Complete visual evidence of working infrastructure:**
 
-- **77 Screenshots** organized by category - [View SCREENSHOTS.md](docs/SCREENSHOTS.md)
+- **77 Screenshots** organized by category - [View SCREENSHOTS.md](docs/screenshot.md)
 - **Local Application**: Homepage, product catalog, shopping cart, order tracking
 - **AWS Infrastructure**: VPC, ECS, RDS, ALB, WAF, Route53, ACM, CloudWatch
 - **CI/CD Pipelines**: Security scanning, build automation, deployment workflows
@@ -974,7 +974,7 @@ infra/terraform/
 - Known bad inputs blocking
 - Bot control (verified bots allowed, malicious blocked)
 - Geographic restrictions (optional)
-- **Evidence**: [WAF Testing Screenshots](docs/screenshots/waf/)
+- **Evidence**: [WAF Testing Screenshots](docs/screenshots/waf/waf-&-sheild-report.png)
 
 **Layer 2: Network Security**
 - Security groups with least-privilege rules
