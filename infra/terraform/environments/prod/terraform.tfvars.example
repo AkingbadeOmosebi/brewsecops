@@ -1,0 +1,8 @@
+domain_name         = "brewsecops.online"
+db_master_password  = "CHANGE_ME"
+frontend_image_tag  = "dev"
+backend_image_tag   = "dev"
+waf_rate_limit      = 2000
+waf_ip_whitelist    = []
+blocked_countries   = ["NG", "IN", "ES", "PK", "CN", "RU", "NL"] 
+enable_geo_blocking = true
